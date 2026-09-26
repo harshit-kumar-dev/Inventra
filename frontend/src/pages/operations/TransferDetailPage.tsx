@@ -9,7 +9,7 @@ import { LoadingState } from '../../components/LoadingState';
 import { ErrorState } from '../../components/ErrorState';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { useToast } from '../../context/ToastContext';
-import { ArrowLeft, ArrowLeftRight, CheckCircle2, PlayCircle, XCircle, Plus, Trash2, Building2, Calendar, Box, MoveRight } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, PlayCircle, XCircle, Plus, Trash2, Building2, Calendar, Box, MoveRight } from 'lucide-react';
 
 export const TransferDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -170,7 +170,6 @@ export const TransferDetailPage: React.FC = () => {
       return;
     }
 
-    // Validate that source != destination on line level
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (line.sourceLocationId === line.destinationLocationId) {
@@ -265,38 +264,40 @@ export const TransferDetailPage: React.FC = () => {
   const isLocked = isDone || isCanceled;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
             onClick={() => navigate('/transfers')}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition"
+            className="btn btn-secondary"
+            style={{ padding: '8px' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                 {isNew ? 'New Internal Stock Transfer' : transfer?.referenceNo}
               </h1>
               {transfer && <StatusBadge status={transfer.status} />}
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
               {isNew ? 'Shift quantities between storage zones' : `Created on ${new Date(transfer!.createdAt).toLocaleString()}`}
             </p>
           </div>
         </div>
 
         {!isNew && transfer && !isLocked && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
             {transfer.status === 'DRAFT' && (
               <button
                 onClick={handleMarkReady}
                 disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-blue-600/20"
+                className="btn btn-accent"
+                style={{ fontSize: '13px' }}
               >
-                <PlayCircle className="w-4 h-4" /> Mark Ready
+                <PlayCircle size={15} /> Mark Ready
               </button>
             )}
 
@@ -304,18 +305,20 @@ export const TransferDetailPage: React.FC = () => {
               <button
                 onClick={() => setConfirmValidateOpen(true)}
                 disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-emerald-600/20"
+                className="btn btn-primary"
+                style={{ fontSize: '13px' }}
               >
-                <CheckCircle2 className="w-4 h-4" /> Validate & Move Stock
+                <CheckCircle2 size={15} /> Validate & Move Stock
               </button>
             )}
 
             <button
               onClick={() => setConfirmCancelOpen(true)}
               disabled={submitting}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400 border border-slate-700 rounded-xl text-sm transition"
+              className="btn btn-danger"
+              style={{ fontSize: '13px' }}
             >
-              <XCircle className="w-4 h-4" /> Cancel
+              <XCircle size={15} /> Cancel
             </button>
           </div>
         )}
@@ -323,19 +326,21 @@ export const TransferDetailPage: React.FC = () => {
 
       {/* Form or Read View */}
       {isNew ? (
-        <form onSubmit={handleCreateSubmit} className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">Transfer Header</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Origin Warehouse <span className="text-rose-400">*</span>
+        <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Transfer Header
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">
+                  Origin Warehouse <span style={{ color: 'var(--status-canceled-text)' }}>*</span>
                 </label>
                 <select
                   required
                   value={sourceWarehouseId}
                   onChange={(e) => setSourceWarehouseId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
                   <option value="">Select Origin</option>
                   {warehouses.map((w) => (
@@ -346,15 +351,15 @@ export const TransferDetailPage: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Destination Warehouse <span className="text-rose-400">*</span>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">
+                  Destination Warehouse <span style={{ color: 'var(--status-canceled-text)' }}>*</span>
                 </label>
                 <select
                   required
                   value={destinationWarehouseId}
                   onChange={(e) => setDestinationWarehouseId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
                   <option value="">Select Destination</option>
                   {warehouses.map((w) => (
@@ -365,75 +370,87 @@ export const TransferDetailPage: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Transfer Date <span className="text-rose-400">*</span>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">
+                  Transfer Date <span style={{ color: 'var(--status-canceled-text)' }}>*</span>
                 </label>
                 <input
                   type="date"
                   required
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-input"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Responsible Staff
-                </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Responsible Staff</label>
                 <input
                   type="text"
                   value={responsible}
                   onChange={(e) => setResponsible(e.target.value)}
                   placeholder="e.g., Transfer Coordinator"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-input"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Transfer Notes
-                </label>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Transfer Notes</label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g., Rebalance inventory for seasonal demand"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-input"
                 />
               </div>
             </div>
           </div>
 
           {/* Transfer Lines */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">Transfer Lines</h2>
+          <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Transfer Lines
+              </h2>
               <button
                 type="button"
                 onClick={handleAddLine}
-                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition"
+                className="btn btn-secondary"
+                style={{ fontSize: '12px', padding: '6px 12px' }}
               >
-                <Plus className="w-3.5 h-3.5" /> Add Transfer Item
+                <Plus size={14} /> Add Transfer Item
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {lines.map((line, idx) => {
                 const isIdentical = line.sourceLocationId && line.destinationLocationId && line.sourceLocationId === line.destinationLocationId;
                 const isShort = (line.availableStock || 0) < line.quantity;
                 return (
-                  <div key={idx} className="flex flex-col lg:flex-row items-end gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs text-slate-400 mb-1">Product</label>
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-end',
+                      gap: '12px',
+                      padding: '14px',
+                      background: '#FAF8F5',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                    }}
+                  >
+                    <div style={{ flex: '1 1 200px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Product</label>
                       <select
                         required
                         value={line.productId}
                         onChange={(e) => handleLineChange(idx, 'productId', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="form-select"
+                        style={{ fontSize: '13px' }}
                       >
                         <option value="">Select Item</option>
                         {products.map((p) => (
@@ -444,13 +461,14 @@ export const TransferDetailPage: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="w-full lg:w-44">
-                      <label className="block text-xs text-slate-400 mb-1">Source Bin</label>
+                    <div style={{ flex: '1 1 180px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Source Bin</label>
                       <select
                         required
                         value={line.sourceLocationId}
                         onChange={(e) => handleLineChange(idx, 'sourceLocationId', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="form-select"
+                        style={{ fontSize: '13px' }}
                       >
                         <option value="">Select Origin Bin</option>
                         {sourceLocations.map((loc) => (
@@ -461,15 +479,17 @@ export const TransferDetailPage: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="w-full lg:w-44">
-                      <label className="block text-xs text-slate-400 mb-1">Destination Bin</label>
+                    <div style={{ flex: '1 1 180px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Destination Bin</label>
                       <select
                         required
                         value={line.destinationLocationId}
                         onChange={(e) => handleLineChange(idx, 'destinationLocationId', e.target.value)}
-                        className={`w-full bg-slate-900 border text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 ${
-                          isIdentical ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-700 focus:ring-indigo-500'
-                        }`}
+                        className="form-select"
+                        style={{
+                          fontSize: '13px',
+                          borderColor: isIdentical ? 'var(--status-canceled-border)' : undefined,
+                        }}
                       >
                         <option value="">Select Target Bin</option>
                         {destLocations.map((loc) => (
@@ -480,10 +500,10 @@ export const TransferDetailPage: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="w-full lg:w-28">
-                      <div className="flex justify-between items-center text-xs text-slate-400 mb-1">
+                    <div style={{ width: '120px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
                         <span>Quantity</span>
-                        <span className={`text-[10px] font-mono ${isShort ? 'text-rose-400 font-bold' : 'text-emerald-400'}`}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: isShort ? 'var(--status-canceled-text)' : 'var(--color-primary)' }}>
                           Avail: {line.availableStock ?? '-'}
                         </span>
                       </div>
@@ -493,9 +513,12 @@ export const TransferDetailPage: React.FC = () => {
                         min={1}
                         value={line.quantity}
                         onChange={(e) => handleLineChange(idx, 'quantity', parseInt(e.target.value) || 1)}
-                        className={`w-full bg-slate-900 border text-white text-xs rounded-lg px-3 py-2 font-mono focus:outline-none focus:ring-2 ${
-                          isShort ? 'border-rose-500 focus:ring-rose-500 text-rose-300' : 'border-slate-700 focus:ring-indigo-500'
-                        }`}
+                        className="form-input"
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '13px',
+                          borderColor: isShort ? 'var(--status-canceled-border)' : undefined,
+                        }}
                       />
                     </div>
 
@@ -503,10 +526,11 @@ export const TransferDetailPage: React.FC = () => {
                       type="button"
                       onClick={() => handleRemoveLine(idx)}
                       disabled={lines.length <= 1}
-                      className="p-2 text-slate-500 hover:text-rose-400 disabled:opacity-30 transition rounded-lg"
+                      className="btn btn-secondary"
+                      style={{ padding: '8px', color: 'var(--status-canceled-text)' }}
                       title="Remove Line"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 );
@@ -514,99 +538,116 @@ export const TransferDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
             <button
               type="button"
               onClick={() => navigate('/transfers')}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
+              className="btn btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
+              className="btn btn-primary"
             >
               {submitting ? 'Creating Transfer...' : 'Save Transfer Draft'}
             </button>
           </div>
         </form>
       ) : transfer ? (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Header Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Origin Facility</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-cyan-400" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Origin Facility</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Building2 size={15} color="var(--color-primary)" />
                 {transfer.sourceWarehouse?.name}
               </div>
-              <span className="text-xs font-mono text-cyan-400">{transfer.sourceWarehouse?.code}</span>
+              <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', marginTop: '2px', display: 'block' }}>
+                {transfer.sourceWarehouse?.code}
+              </span>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Destination Facility</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-indigo-400" />
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Destination Facility</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Building2 size={15} color="var(--color-primary)" />
                 {transfer.destinationWarehouse?.name}
               </div>
-              <span className="text-xs font-mono text-cyan-400">{transfer.destinationWarehouse?.code}</span>
+              <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', marginTop: '2px', display: 'block' }}>
+                {transfer.destinationWarehouse?.code}
+              </span>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Scheduled Date</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-amber-400" />
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Scheduled Date</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Calendar size={15} color="var(--color-accent)" />
                 {new Date(transfer.scheduleDate).toLocaleDateString()}
               </div>
-              <span className="text-xs text-slate-400">Responsible: {transfer.responsible || 'Internal Logistics'}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                Responsible: {transfer.responsible || 'Internal Logistics'}
+              </span>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Validation Status</span>
-              <div className="mt-1 font-bold text-white">
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Validation Status</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {transfer.validator?.name ? `Validated by ${transfer.validator.name}` : 'Pending Move'}
               </div>
-              <span className="text-xs text-slate-400">Created by {transfer.creator?.name || 'Staff'}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                Created by {transfer.creator?.name || 'Staff'}
+              </span>
             </div>
           </div>
 
           {/* Lines Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Box className="w-5 h-5 text-indigo-400" /> Relocating Products
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#FAF8F5',
+              }}
+            >
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Box size={18} color="var(--color-primary)" /> Relocating Products
               </h2>
-              <span className="text-xs text-slate-400">{transfer.lines?.length || 0} Items</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{transfer.lines?.length || 0} Items</span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="custom-table">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    <th className="px-6 py-3.5">Product</th>
-                    <th className="px-6 py-3.5">SKU</th>
-                    <th className="px-6 py-3.5">From Location</th>
-                    <th className="px-6 py-3.5"></th>
-                    <th className="px-6 py-3.5">To Location</th>
-                    <th className="px-6 py-3.5 text-right">Transfer Quantity</th>
+                  <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>From Location</th>
+                    <th></th>
+                    <th>To Location</th>
+                    <th style={{ textAlign: 'right' }}>Transfer Quantity</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody>
                   {transfer.lines?.map((line, idx) => (
-                    <tr key={idx} className="hover:bg-slate-800/40 transition">
-                      <td className="px-6 py-4 font-medium text-white">{line.product?.name}</td>
-                      <td className="px-6 py-4 font-mono text-cyan-400 text-xs">{line.product?.sku}</td>
-                      <td className="px-6 py-4 text-slate-300">
-                        {line.sourceLocation?.name} <span className="text-xs font-mono text-slate-500">({line.sourceLocation?.code})</span>
+                    <tr key={idx}>
+                      <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{line.product?.name}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-primary)' }}>{line.product?.sku}</td>
+                      <td style={{ color: 'var(--text-secondary)' }}>
+                        {line.sourceLocation?.name} <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>({line.sourceLocation?.code})</span>
                       </td>
-                      <td className="px-2 py-4 text-center">
-                        <MoveRight className="w-4 h-4 text-slate-500 inline" />
+                      <td style={{ textAlign: 'center' }}>
+                        <MoveRight size={16} color="var(--color-accent)" style={{ display: 'inline' }} />
                       </td>
-                      <td className="px-6 py-4 text-slate-300">
-                        {line.destinationLocation?.name} <span className="text-xs font-mono text-slate-500">({line.destinationLocation?.code})</span>
+                      <td style={{ color: 'var(--text-secondary)' }}>
+                        {line.destinationLocation?.name} <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>({line.destinationLocation?.code})</span>
                       </td>
-                      <td className="px-6 py-4 text-right font-mono font-bold text-cyan-400">
+                      <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-primary)' }}>
                         {line.quantity} {line.product?.uom?.symbol || 'units'}
                       </td>
                     </tr>

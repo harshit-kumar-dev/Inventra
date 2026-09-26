@@ -423,9 +423,9 @@ export class DeliveryService {
       }
     }
 
-    // Execute atomic transaction
-    return prisma.$transaction(async (tx) => {
-      // 1. Process each line using StockEngineService.decreaseStock
+    return prisma.$transaction(
+      async (tx) => {
+        // 1. Process each line using StockEngineService.decreaseStock
       for (const line of delivery.lines) {
         await StockEngineService.decreaseStock(tx, {
           productId: line.productId,
@@ -456,7 +456,9 @@ export class DeliveryService {
       });
 
       return updatedDelivery;
-    });
+      },
+      { maxWait: 10000, timeout: 25000 }
+    );
   }
 
   /**

@@ -60,47 +60,59 @@ export const TransferListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <ArrowLeftRight className="w-7 h-7 text-cyan-400" /> Internal Stock Transfers
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '-0.02em' }}>
+            <ArrowLeftRight size={28} color="var(--color-primary)" /> Internal Stock Transfers
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Shift inventory between facilities and internal bins with atomic double-entry ledger tracking
           </p>
         </div>
         <Link
           to="/transfers/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/20 font-medium text-sm transition active:scale-95"
+          className="btn btn-primary"
         >
-          <Plus className="w-4 h-4" /> New Transfer
+          <Plus size={16} /> New Transfer
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      <div
+        className="card"
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '14px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <form onSubmit={handleSearchSubmit} style={{ position: 'relative', flex: '1 1 260px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search transfer ref..."
-            className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="form-input"
+            style={{ paddingLeft: '38px' }}
           />
         </form>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Filter className="w-3.5 h-3.5" /> Filters:
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <Filter size={14} /> Filters:
           </div>
 
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="form-select"
+            style={{ width: 'auto', fontSize: '13px' }}
           >
             <option value="">All Statuses</option>
             <option value="DRAFT">DRAFT</option>
@@ -112,7 +124,8 @@ export const TransferListPage: React.FC = () => {
           <select
             value={sourceWarehouseId}
             onChange={(e) => setSourceWarehouseId(e.target.value)}
-            className="bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="form-select"
+            style={{ width: 'auto', fontSize: '13px' }}
           >
             <option value="">All Source Warehouses</option>
             {warehouses.map((w) => (
@@ -138,66 +151,66 @@ export const TransferListPage: React.FC = () => {
           onAction={() => navigate('/transfers/new')}
         />
       ) : (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="px-6 py-3.5">Reference</th>
-                  <th className="px-6 py-3.5">Origin Facility</th>
-                  <th className="px-6 py-3.5">Destination Facility</th>
-                  <th className="px-6 py-3.5">Transfer Date</th>
-                  <th className="px-6 py-3.5">Total Quantity</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {transfers.map((t) => (
-                  <tr
-                    key={t.id}
-                    onClick={() => navigate(`/transfers/${t.id}`)}
-                    className="hover:bg-slate-800/40 transition cursor-pointer group"
-                  >
-                    <td className="px-6 py-4 font-mono font-bold text-white text-sm group-hover:text-indigo-400 transition flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+        <div className="table-container animate-fade-in">
+          <table className="custom-table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Origin Facility</th>
+                <th>Destination Facility</th>
+                <th>Transfer Date</th>
+                <th>Total Quantity</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transfers.map((t) => (
+                <tr
+                  key={t.id}
+                  onClick={() => navigate(`/transfers/${t.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-primary)' }} />
                       {t.referenceNo}
-                    </td>
-                    <td className="px-6 py-4 text-slate-300">
-                      <div className="flex items-center gap-1.5 font-medium text-white">
-                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                        {t.sourceWarehouse?.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-300">
-                      <div className="flex items-center gap-1.5 font-medium text-white">
-                        <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-                        {t.destinationWarehouse?.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                        {new Date(t.scheduleDate).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-300 text-xs font-mono">
-                      <span className="font-semibold text-white">{t.lines?.length || 0}</span> lines
-                      {t.totalQuantity !== undefined && (
-                        <span className="text-slate-400 ml-1">({t.totalQuantity} units)</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={t.status} />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition ml-auto" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <Building2 size={14} color="var(--text-muted)" />
+                      {t.sourceWarehouse?.name}
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <Building2 size={14} color="var(--color-primary)" />
+                      {t.destinationWarehouse?.name}
+                    </div>
+                  </td>
+                  <td style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Calendar size={14} color="var(--text-muted)" />
+                      {new Date(t.scheduleDate).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{t.lines?.length || 0}</span> lines
+                    {t.totalQuantity !== undefined && (
+                      <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>({t.totalQuantity} units)</span>
+                    )}
+                  </td>
+                  <td>
+                    <StatusBadge status={t.status} />
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <ChevronRight size={16} color="var(--text-muted)" style={{ marginLeft: 'auto' }} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

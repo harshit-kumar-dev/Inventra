@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { operationApi, Receipt, ReceiptLine } from '../../services/operationApi';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { operationApi, Receipt } from '../../services/operationApi';
 import { productApi, Product } from '../../services/productApi';
 import { warehouseApi, Warehouse, Location } from '../../services/warehouseApi';
 import { supplierApi, Supplier } from '../../services/supplierApi';
@@ -8,13 +8,31 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { LoadingState } from '../../components/LoadingState';
 import { ErrorState } from '../../components/ErrorState';
 import { ConfirmModal } from '../../components/ConfirmModal';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { ArrowLeft, CheckCircle2, PlayCircle, XCircle, Plus, Trash2, Building2, Truck, Calendar, Box, ShieldAlert } from 'lucide-react';
+import {
+  Plus,
+  Printer,
+  XCircle,
+  CheckCircle2,
+  PlayCircle,
+  Trash2,
+  Package,
+  Calendar,
+  User,
+  Truck,
+  Building2,
+  MapPin,
+  FileText,
+  Save,
+  ArrowLeft,
+} from 'lucide-react';
 
 export const ReceiptDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isNew = !id || id === 'new';
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [receipt, setReceipt] = useState<Receipt | null>(null);
@@ -22,23 +40,23 @@ export const ReceiptDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form state for creating receipt
+  // Form state for new receipt
   const [supplierId, setSupplierId] = useState('');
   const [warehouseId, setWarehouseId] = useState('');
   const [scheduleDate, setScheduleDate] = useState(new Date().toISOString().split('T')[0]);
-  const [responsible, setResponsible] = useState('');
+  const [responsible, setResponsible] = useState(user?.name || 'Harshit Kumar');
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<Array<{ productId: string; locationId: string; quantity: number }>>([
     { productId: '', locationId: '', quantity: 1 },
   ]);
 
-  // Master options
+  // Master lookup data
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
 
-  // Action Modals
+  // Confirmation Modals
   const [confirmValidateOpen, setConfirmValidateOpen] = useState(false);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
@@ -64,25 +82,41 @@ export const ReceiptDetailPage: React.FC = () => {
         warehouseApi.getWarehouses(),
         productApi.getProducts({ active: 'true', limit: 100 }),
       ]);
-      setSuppliers(supRes.data?.suppliers || []);
-      setWarehouses(whRes.data?.warehouses || []);
-      setProducts(prodRes.data?.products || []);
+      const supList = supRes.data?.suppliers || [];
+      const whList = whRes.data?.warehouses || [];
+      const prodList = prodRes.data?.products || [];
+
+      setSuppliers(supList);
+      setWarehouses(whList);
+      setProducts(prodList);
 
       if (isNew) {
-        if (supRes.data?.suppliers?.length) setSupplierId(supRes.data.suppliers[0].id);
-        if (whRes.data?.warehouses?.length) setWarehouseId(whRes.data.warehouses[0].id);
+        if (supList.length > 0) setSupplierId(supList[0].id);
+        if (whList.length > 0) setWarehouseId(whList[0].id);
+        if (user?.name) setResponsible(user.name);
       }
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to load receipt prerequisites:', err);
     }
   };
 
   const loadLocations = async (whId: string) => {
     try {
       const res = await warehouseApi.getLocations(whId);
-      setLocations(res.data?.locations || []);
+      const locList = res.data?.locations || [];
+      setLocations(locList);
+
+      // Auto-assign first location to lines missing one
+      if (locList.length > 0) {
+        setLines((prev) =>
+          prev.map((l) => ({
+            ...l,
+            locationId: l.locationId || locList[0].id,
+          }))
+        );
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load locations for warehouse:', err);
     }
   };
 
@@ -91,7 +125,15 @@ export const ReceiptDetailPage: React.FC = () => {
     setError(null);
     try {
       const res = await operationApi.getReceiptById(receiptId);
-      setReceipt(res.data?.receipt || null);
+      const data = res.data?.receipt || null;
+      setReceipt(data);
+      if (data) {
+        setSupplierId(data.supplierId);
+        setWarehouseId(data.warehouseId);
+        setScheduleDate(data.scheduleDate ? data.scheduleDate.split('T')[0] : '');
+        setResponsible(data.responsible || data.creator?.name || user?.name || '');
+        setNotes(data.notes || '');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load receipt details');
     } finally {
@@ -100,7 +142,9 @@ export const ReceiptDetailPage: React.FC = () => {
   };
 
   const handleAddLine = () => {
-    setLines([...lines, { productId: '', locationId: locations[0]?.id || '', quantity: 1 }]);
+    const defaultLocation = locations[0]?.id || '';
+    const defaultProduct = products[0]?.id || '';
+    setLines([...lines, { productId: defaultProduct, locationId: defaultLocation, quantity: 1 }]);
   };
 
   const handleRemoveLine = (idx: number) => {
@@ -117,13 +161,13 @@ export const ReceiptDetailPage: React.FC = () => {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplierId || !warehouseId) {
-      showToast('error', 'Missing Information', 'Please select supplier and warehouse');
+      showToast('error', 'Missing Information', 'Please select a supplier and destination warehouse.');
       return;
     }
 
-    const validLines = lines.filter((l) => l.productId && l.locationId && l.quantity > 0);
+    const validLines = lines.filter((l) => l.productId && l.quantity > 0);
     if (validLines.length === 0) {
-      showToast('error', 'Invalid Product Lines', 'Please add at least one valid product line');
+      showToast('error', 'Invalid Product Lines', 'Please select at least one product with quantity > 0.');
       return;
     }
 
@@ -133,12 +177,16 @@ export const ReceiptDetailPage: React.FC = () => {
         supplierId,
         warehouseId,
         scheduleDate,
-        responsible,
+        responsible: responsible || user?.name || 'Inventory Manager',
         notes,
-        lines: validLines,
+        lines: validLines.map((l) => ({
+          productId: l.productId,
+          locationId: l.locationId || locations[0]?.id,
+          quantity: Number(l.quantity),
+        })),
       });
 
-      showToast('success', 'Receipt Draft Created', `Reference: ${res.data?.receipt.referenceNo}`);
+      showToast('success', 'Receipt Draft Created', `Document: ${res.data?.receipt.referenceNo}`);
       navigate(`/receipts/${res.data?.receipt.id}`);
     } catch (err: any) {
       showToast('error', 'Creation Failed', err.message);
@@ -152,8 +200,8 @@ export const ReceiptDetailPage: React.FC = () => {
     setSubmitting(true);
     try {
       await operationApi.readyReceipt(receipt.id);
-      showToast('success', 'Status Updated', 'Receipt marked as READY for intake.');
-      loadReceipt(receipt.id);
+      showToast('success', 'Status Updated', 'Receipt marked as READY for dock receiving.');
+      await loadReceipt(receipt.id);
     } catch (err: any) {
       showToast('error', 'Operation Failed', err.message);
     } finally {
@@ -166,9 +214,9 @@ export const ReceiptDetailPage: React.FC = () => {
     setSubmitting(true);
     try {
       await operationApi.validateReceipt(receipt.id);
-      showToast('success', 'Receipt Validated', 'Stock updated and immutable ledger entries written.');
+      showToast('success', 'Receipt Validated', 'Stock updated and immutable audit ledger entries written.');
       setConfirmValidateOpen(false);
-      loadReceipt(receipt.id);
+      await loadReceipt(receipt.id);
     } catch (err: any) {
       showToast('error', 'Validation Failed', err.message);
     } finally {
@@ -181,9 +229,9 @@ export const ReceiptDetailPage: React.FC = () => {
     setSubmitting(true);
     try {
       await operationApi.cancelReceipt(receipt.id);
-      showToast('info', 'Receipt Canceled', 'Operation canceled.');
+      showToast('info', 'Receipt Canceled', 'Document marked as CANCELED.');
       setConfirmCancelOpen(false);
-      loadReceipt(receipt.id);
+      await loadReceipt(receipt.id);
     } catch (err: any) {
       showToast('error', 'Cancellation Failed', err.message);
     } finally {
@@ -191,105 +239,409 @@ export const ReceiptDetailPage: React.FC = () => {
     }
   };
 
-  if (loading) return <LoadingState text="Loading receipt details..." />;
+  const handlePrint = () => {
+    window.print();
+  };
+
+  if (loading) return <LoadingState text="Loading receipt document..." />;
   if (error && !isNew) return <ErrorState message={error} onRetry={() => id && loadReceipt(id)} />;
 
-  const isDone = receipt?.status === 'DONE';
-  const isCanceled = receipt?.status === 'CANCELED';
-  const isLocked = isDone || isCanceled;
+  const status = isNew ? 'DRAFT' : receipt?.status || 'DRAFT';
+  const isDraft = status === 'DRAFT';
+  const isReady = status === 'READY';
+  const isDone = status === 'DONE';
+  const isCanceled = status === 'CANCELED';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/receipts')}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-                {isNew ? 'New Goods Receipt' : receipt?.referenceNo}
-              </h1>
-              {receipt && <StatusBadge status={receipt.status} />}
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {isNew ? 'Record inbound shipment from procurement partner' : `Created on ${new Date(receipt!.createdAt).toLocaleString()}`}
-            </p>
-          </div>
-        </div>
+    <div style={{ maxWidth: '1060px', margin: '0 auto', paddingBottom: '60px' }}>
+      {/* Top Back Navigation Bar (Screen Only) */}
+      <div
+        className="no-print"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate('/receipts')}
+          className="btn btn-secondary"
+          style={{ padding: '6px 12px', fontSize: '13px' }}
+        >
+          <ArrowLeft size={15} /> Back to Receipts
+        </button>
 
-        {/* Action Controls for Existing Receipt */}
-        {!isNew && receipt && !isLocked && (
-          <div className="flex flex-wrap items-center gap-3">
-            {receipt.status === 'DRAFT' && (
-              <button
-                onClick={handleMarkReady}
-                disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-blue-600/20"
-              >
-                <PlayCircle className="w-4 h-4" /> Mark as Ready
-              </button>
-            )}
-
-            {(receipt.status === 'DRAFT' || receipt.status === 'READY') && (
-              <button
-                onClick={() => setConfirmValidateOpen(true)}
-                disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-emerald-600/20"
-              >
-                <CheckCircle2 className="w-4 h-4" /> Validate & Increase Stock
-              </button>
-            )}
-
-            <button
-              onClick={() => setConfirmCancelOpen(true)}
-              disabled={submitting}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400 border border-slate-700 rounded-xl text-sm transition"
-            >
-              <XCircle className="w-4 h-4" /> Cancel Order
-            </button>
+        {!isNew && (
+          <div style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+            Created: {receipt?.createdAt ? new Date(receipt.createdAt).toLocaleString() : '-'}
           </div>
         )}
       </div>
 
-      {/* Creation Mode or Detail Mode */}
-      {isNew ? (
-        <form onSubmit={handleCreateSubmit} className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">Order Header</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Vendor / Supplier <span className="text-rose-400">*</span>
-                </label>
+      {/* Main ERP Centered Document Sheet Container */}
+      <div
+        className="card print-document"
+        style={{
+          background: '#FFFFFF',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-medium)',
+          boxShadow: '0 8px 30px rgba(79, 91, 42, 0.08)',
+          padding: '36px 42px',
+          position: 'relative',
+        }}
+      >
+        {/* ========================================================= */}
+        {/* 1. DOCUMENT TITLE & HEADER BAR                            */}
+        {/* ========================================================= */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '16px',
+            paddingBottom: '20px',
+            borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          {/* Left: [ New ] Button + Large Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <Link
+              to="/receipts/new"
+              className="btn btn-primary no-print"
+              style={{
+                fontSize: '13px',
+                padding: '7px 14px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Plus size={15} /> New
+            </Link>
+
+            <h1
+              style={{
+                fontSize: '26px',
+                fontWeight: 800,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.02em',
+                margin: 0,
+              }}
+            >
+              Receipt
+            </h1>
+          </div>
+
+          {/* Right: Actual Receipt Document Identifier */}
+          <div style={{ textAlign: 'right' }}>
+            <div
+              style={{
+                fontSize: '20px',
+                fontWeight: 800,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--color-primary)',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {isNew ? 'New Receipt Draft' : receipt?.referenceNo || 'WH/IN/----'}
+            </div>
+            {!isNew && receipt?.warehouse && (
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                {receipt.warehouse.name} ({receipt.warehouse.code})
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* 2. ACTION CONTROLS & STATUS PROGRESSION BAR (ODOO-STYLE)  */}
+        {/* ========================================================= */}
+        <div
+          className="no-print"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '16px',
+            padding: '16px 0',
+            borderBottom: '1px solid var(--border-subtle)',
+            backgroundColor: '#FAF8F5',
+            margin: '0 -42px',
+            paddingLeft: '42px',
+            paddingRight: '42px',
+          }}
+        >
+          {/* Action Buttons based on Current State */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {isNew ? (
+              <button
+                type="button"
+                onClick={handleCreateSubmit}
+                disabled={submitting}
+                className="btn btn-primary"
+                style={{ fontSize: '13px', padding: '7px 16px' }}
+              >
+                <Save size={15} /> {submitting ? 'Creating...' : 'Save Draft'}
+              </button>
+            ) : (
+              <>
+                {/* DRAFT / READY ACTIONS */}
+                {(isDraft || isReady) && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmValidateOpen(true)}
+                    disabled={submitting}
+                    className="btn btn-primary"
+                    style={{ fontSize: '13px', padding: '7px 16px' }}
+                  >
+                    <CheckCircle2 size={15} /> Validate
+                  </button>
+                )}
+
+                {isDraft && (
+                  <button
+                    type="button"
+                    onClick={handleMarkReady}
+                    disabled={submitting}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '13px', padding: '7px 14px' }}
+                  >
+                    <PlayCircle size={15} /> Mark as Ready
+                  </button>
+                )}
+
+                {/* PRINT ACTION */}
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '13px', padding: '7px 14px' }}
+                  title="Print Receiving Voucher"
+                >
+                  <Printer size={15} /> Print
+                </button>
+
+                {/* CANCEL ACTION */}
+                {(isDraft || isReady) && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmCancelOpen(true)}
+                    disabled={submitting}
+                    className="btn btn-danger"
+                    style={{ fontSize: '13px', padding: '7px 14px' }}
+                  >
+                    <XCircle size={15} /> Cancel
+                  </button>
+                )}
+
+                {/* DONE NOTIFICATION */}
+                {isDone && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12.5px',
+                      color: 'var(--color-primary)',
+                      fontWeight: 600,
+                      padding: '4px 10px',
+                      background: 'var(--color-surface-tint)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <CheckCircle2 size={15} /> Inventory Ledger Updated
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Status Progression Workflow Indicator (Draft -> Ready -> Done) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid var(--border-medium)',
+              borderRadius: 'var(--radius-full)',
+              padding: '3px 4px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            {/* Step 1: Draft */}
+            <div
+              style={{
+                padding: '4px 14px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                textTransform: 'uppercase',
+                backgroundColor: isDraft ? 'var(--color-primary)' : isDone || isReady ? 'var(--color-surface-tint)' : 'transparent',
+                color: isDraft ? '#FFFFFF' : isDone || isReady ? 'var(--color-primary)' : 'var(--text-muted)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Draft
+            </div>
+
+            <span style={{ color: 'var(--border-strong)', padding: '0 4px', fontSize: '12px' }}>→</span>
+
+            {/* Step 2: Ready */}
+            <div
+              style={{
+                padding: '4px 14px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                textTransform: 'uppercase',
+                backgroundColor: isReady ? 'var(--color-accent)' : isDone ? 'var(--color-surface-tint)' : 'transparent',
+                color: isReady ? '#FFFFFF' : isDone ? 'var(--color-primary)' : 'var(--text-muted)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Ready
+            </div>
+
+            <span style={{ color: 'var(--border-strong)', padding: '0 4px', fontSize: '12px' }}>→</span>
+
+            {/* Step 3: Done / Canceled */}
+            {isCanceled ? (
+              <div
+                style={{
+                  padding: '4px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '0.03em',
+                  textTransform: 'uppercase',
+                  backgroundColor: 'var(--status-canceled-bg)',
+                  color: 'var(--status-canceled-text)',
+                  border: '1px solid var(--status-canceled-border)',
+                }}
+              >
+                Canceled
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: '4px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '0.03em',
+                  textTransform: 'uppercase',
+                  backgroundColor: isDone ? 'var(--color-primary)' : 'transparent',
+                  color: isDone ? '#FFFFFF' : 'var(--text-muted)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                Done
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* 3. TWO-COLUMN METADATA INFORMATION SECTION                 */}
+        {/* ========================================================= */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '32px',
+            paddingTop: '28px',
+            paddingBottom: '24px',
+          }}
+        >
+          {/* LEFT COLUMN: Receive From & Responsible */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Receive From (Vendor / Supplier) */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label
+                className="form-label"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Truck size={14} color="var(--color-primary)" /> Receive From (Vendor)
+              </label>
+
+              {isNew ? (
                 <select
                   required
                   value={supplierId}
                   onChange={(e) => setSupplierId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
-                  <option value="">Select Supplier</option>
+                  <option value="">Select Vendor / Supplier</option>
                   {suppliers.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
                   ))}
                 </select>
-              </div>
+              ) : (
+                <div
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    paddingTop: '4px',
+                  }}
+                >
+                  {receipt?.supplier?.name || 'Vendor not assigned'}
+                  {(receipt?.supplier as any)?.contactName ? (
+                    <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--text-secondary)', marginLeft: '8px' }}>
+                      ({(receipt?.supplier as any).contactName})
+                    </span>
+                  ) : receipt?.supplier?.email ? (
+                    <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--text-secondary)', marginLeft: '8px' }}>
+                      ({receipt.supplier.email})
+                    </span>
+                  ) : null}
+                </div>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Destination Warehouse <span className="text-rose-400">*</span>
-                </label>
+            {/* Destination Warehouse Facility */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label
+                className="form-label"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Building2 size={14} color="var(--color-primary)" /> Destination Warehouse
+              </label>
+
+              {isNew ? (
                 <select
                   required
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
                   <option value="">Select Warehouse</option>
                   {warehouses.map((w) => (
@@ -298,246 +650,396 @@ export const ReceiptDetailPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              ) : (
+                <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', paddingTop: '4px' }}>
+                  {receipt?.warehouse?.name} ({receipt?.warehouse?.code})
+                </div>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Scheduled Arrival Date <span className="text-rose-400">*</span>
-                </label>
+            {/* Responsible User */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label
+                className="form-label"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <User size={14} color="var(--color-primary)" /> Responsible
+              </label>
+
+              {isNew ? (
+                <input
+                  type="text"
+                  value={responsible}
+                  onChange={(e) => setResponsible(e.target.value)}
+                  placeholder="e.g. Harshit Kumar"
+                  className="form-input"
+                />
+              ) : (
+                <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', paddingTop: '4px' }}>
+                  {receipt?.responsible || receipt?.creator?.name || user?.name || 'Administrator'}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Schedule Date & Status */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Schedule Date */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label
+                className="form-label"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Calendar size={14} color="var(--color-primary)" /> Schedule Date
+              </label>
+
+              {isNew ? (
                 <input
                   type="date"
                   required
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-input"
                 />
+              ) : (
+                <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', paddingTop: '4px' }}>
+                  {receipt?.scheduleDate ? new Date(receipt.scheduleDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Immediate Intake'}
+                </div>
+              )}
+            </div>
+
+            {/* Document Status */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label
+                className="form-label"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <FileText size={14} color="var(--color-primary)" /> Status
+              </label>
+              <div style={{ paddingTop: '4px' }}>
+                <StatusBadge status={status} />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Responsible Staff
-                </label>
-                <input
-                  type="text"
-                  value={responsible}
-                  onChange={(e) => setResponsible(e.target.value)}
-                  placeholder="e.g. Warehouse Incharge"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Notes / Purchase Order Ref
-                </label>
+            {/* Internal Intake Notes */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label
+                className="form-label"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                Intake Notes (Optional)
+              </label>
+              {isNew ? (
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g., PO-84920 / Gate Entry #1"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  placeholder="Delivery truck manifest, PO number..."
+                  className="form-input"
                 />
-              </div>
-            </div>
-          </div>
-
-          {/* Product Lines */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">Products & Quantities</h2>
-              <button
-                type="button"
-                onClick={handleAddLine}
-                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Product Line
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {lines.map((line, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row items-end gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
-                  <div className="flex-1 w-full">
-                    <label className="block text-xs text-slate-400 mb-1">Product</label>
-                    <select
-                      required
-                      value={line.productId}
-                      onChange={(e) => handleLineChange(idx, 'productId', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="">Select Item</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.sku})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="w-full sm:w-48">
-                    <label className="block text-xs text-slate-400 mb-1">Target Location</label>
-                    <select
-                      required
-                      value={line.locationId}
-                      onChange={(e) => handleLineChange(idx, 'locationId', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="">Select Location</option>
-                      {locations.map((loc) => (
-                        <option key={loc.id} value={loc.id}>
-                          {loc.name} ({loc.code})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="w-full sm:w-28">
-                    <label className="block text-xs text-slate-400 mb-1">Quantity</label>
-                    <input
-                      type="number"
-                      required
-                      min={1}
-                      value={line.quantity}
-                      onChange={(e) => handleLineChange(idx, 'quantity', parseInt(e.target.value) || 1)}
-                      className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveLine(idx)}
-                    disabled={lines.length <= 1}
-                    className="p-2 text-slate-500 hover:text-rose-400 disabled:opacity-30 transition rounded-lg"
-                    title="Remove Line"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+              ) : (
+                <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', paddingTop: '4px' }}>
+                  {receipt?.notes || 'No notes specified.'}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/receipts')}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
-            >
-              {submitting ? 'Creating Receipt...' : 'Save as Draft'}
-            </button>
-          </div>
-        </form>
-      ) : receipt ? (
-        <div className="space-y-6">
-          {/* Overview Info */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Supplier</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-cyan-400" />
-                {receipt.supplier?.name}
-              </div>
-              <span className="text-xs text-slate-400">{receipt.supplier?.email || '-'}</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Destination Warehouse</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-indigo-400" />
-                {receipt.warehouse?.name}
-              </div>
-              <span className="text-xs font-mono text-cyan-400">{receipt.warehouse?.code}</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Scheduled Arrival</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-amber-400" />
-                {new Date(receipt.scheduleDate).toLocaleDateString()}
-              </div>
-              <span className="text-xs text-slate-400">Responsible: {receipt.responsible || 'General Staff'}</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Validation Status</span>
-              <div className="mt-1 font-bold text-white">
-                {receipt.validator?.name ? `Validated by ${receipt.validator.name}` : 'Pending Validation'}
-              </div>
-              <span className="text-xs text-slate-400">
-                Created by {receipt.creator?.name || 'System User'}
-              </span>
-            </div>
-          </div>
-
-          {/* Lines Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Box className="w-5 h-5 text-indigo-400" /> Inbound Product Lines
-              </h2>
-              <span className="text-xs text-slate-400">{receipt.lines?.length || 0} Products</span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    <th className="px-6 py-3.5">Product</th>
-                    <th className="px-6 py-3.5">SKU</th>
-                    <th className="px-6 py-3.5">Destination Storage Location</th>
-                    <th className="px-6 py-3.5 text-right">Quantity</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {receipt.lines?.map((line, idx) => (
-                    <tr key={idx} className="hover:bg-slate-800/40 transition">
-                      <td className="px-6 py-4 font-medium text-white">{line.product?.name}</td>
-                      <td className="px-6 py-4 font-mono text-cyan-400 text-xs">{line.product?.sku}</td>
-                      <td className="px-6 py-4 text-slate-300">
-                        {line.location?.name} <span className="text-xs font-mono text-slate-500">({line.location?.code})</span>
-                      </td>
-                      <td className="px-6 py-4 text-right font-mono font-bold text-emerald-400">
-                        +{line.quantity} {line.product?.uom?.symbol || 'units'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              )}
             </div>
           </div>
         </div>
-      ) : null}
 
-      {/* Confirmation Dialogs */}
+        {/* ========================================================= */}
+        {/* 4. PRODUCTS DOCUMENT SECTION                              */}
+        {/* ========================================================= */}
+        <div style={{ marginTop: '24px' }}>
+          {/* Section Tab Header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              borderBottom: '2px solid var(--color-primary)',
+              paddingBottom: '8px',
+              marginBottom: '16px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: 800,
+                color: 'var(--color-primary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Package size={16} /> Products
+            </span>
+          </div>
+
+          {/* Product Lines Table */}
+          {isNew ? (
+            /* Editable Lines for New Receipt */
+            <div>
+              <div className="table-container" style={{ border: '1px solid var(--border-subtle)' }}>
+                <table className="custom-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '45%' }}>Product</th>
+                      <th style={{ width: '30%' }}>Receiving Location</th>
+                      <th style={{ width: '15%' }}>Quantity</th>
+                      <th style={{ width: '10%', textAlign: 'center' }}>Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lines.map((line, idx) => (
+                      <tr key={idx}>
+                        <td>
+                          <select
+                            required
+                            value={line.productId}
+                            onChange={(e) => handleLineChange(idx, 'productId', e.target.value)}
+                            className="form-select"
+                            style={{ fontSize: '13.5px' }}
+                          >
+                            <option value="">Select Item from Catalog</option>
+                            {products.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} ({p.sku})
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            required
+                            value={line.locationId}
+                            onChange={(e) => handleLineChange(idx, 'locationId', e.target.value)}
+                            className="form-select"
+                            style={{ fontSize: '13.5px' }}
+                          >
+                            <option value="">Select Location</option>
+                            {locations.map((loc) => (
+                              <option key={loc.id} value={loc.id}>
+                                {loc.name} ({loc.code})
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            value={line.quantity}
+                            onChange={(e) => handleLineChange(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                            className="form-input"
+                            style={{ fontSize: '14px', fontWeight: 600, textAlign: 'center' }}
+                          />
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLine(idx)}
+                            disabled={lines.length <= 1}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: lines.length <= 1 ? 'var(--border-medium)' : 'var(--rose-400)',
+                              cursor: lines.length <= 1 ? 'not-allowed' : 'pointer',
+                              padding: '6px',
+                            }}
+                            title="Remove Line"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Add New Line Button */}
+              <div style={{ marginTop: '14px' }}>
+                <button
+                  type="button"
+                  onClick={handleAddLine}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '13px', padding: '6px 14px' }}
+                >
+                  <Plus size={14} /> Add Product Line
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* View Mode: Document Lines Table */
+            <div className="table-container" style={{ border: '1px solid var(--border-subtle)' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Receiving Shelf / Location</th>
+                    <th style={{ textAlign: 'right' }}>Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {receipt?.lines && receipt.lines.length > 0 ? (
+                    receipt.lines.map((line) => (
+                      <tr key={line.id || Math.random()}>
+                        <td>
+                          <div style={{ fontWeight: 700, fontSize: '14.5px', color: 'var(--text-primary)' }}>
+                            {line.product?.name || 'Inventory Item'}
+                          </div>
+                          <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--color-primary)' }}>
+                            {line.product?.sku || '-'}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <MapPin size={14} color="var(--color-primary)" />
+                            <span style={{ fontWeight: 600 }}>{line.location?.name || 'Main Intake Shelf'}</span>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>({line.location?.code})</span>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <span
+                            style={{
+                              fontSize: '15px',
+                              fontWeight: 800,
+                              fontFamily: 'var(--font-mono)',
+                              color: 'var(--color-primary)',
+                            }}
+                          >
+                            {line.quantity} {line.product?.uom?.symbol || 'Units'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No product lines attached to this receipt order.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Printable Footer Section (Print Mode Only) */}
+        <div
+          className="print-only"
+          style={{
+            display: 'none',
+            marginTop: '48px',
+            paddingTop: '24px',
+            borderTop: '1px dashed var(--border-medium)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
+            <div style={{ textAlign: 'center', minWidth: '180px' }}>
+              <div style={{ borderTop: '1px solid #000', paddingTop: '6px', fontSize: '12px', fontWeight: 600 }}>
+                Receiving Clerk Signature
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', minWidth: '180px' }}>
+              <div style={{ borderTop: '1px solid #000', paddingTop: '6px', fontSize: '12px', fontWeight: 600 }}>
+                Warehouse Supervisor Signature
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirmation Modal: Validate Receipt */}
       <ConfirmModal
         isOpen={confirmValidateOpen}
         onClose={() => setConfirmValidateOpen(false)}
         onConfirm={handleValidate}
         title="Validate Goods Receipt"
-        message={`Are you sure you want to validate ${receipt?.referenceNo}? This action will permanently increase stock quantities at destination locations and generate immutable stock ledger audit logs.`}
+        message="Validating this receipt will commit all received product quantities directly to real-time warehouse stock and write immutable audit ledger entries. This action cannot be reversed."
         confirmText="Confirm & Post to Stock"
-        variant="primary"
+        cancelText="Cancel"
+        type="primary"
+        isLoading={submitting}
       />
 
+      {/* Confirmation Modal: Cancel Receipt */}
       <ConfirmModal
         isOpen={confirmCancelOpen}
         onClose={() => setConfirmCancelOpen(false)}
         onConfirm={handleCancel}
         title="Cancel Goods Receipt"
-        message={`Are you sure you want to cancel receipt ${receipt?.referenceNo}? This action cannot be undone.`}
-        confirmText="Cancel Receipt"
-        variant="danger"
+        message="Are you sure you want to cancel this receipt? Once canceled, this intake order cannot be processed or validated."
+        confirmText="Yes, Cancel Receipt"
+        cancelText="Keep Draft"
+        type="danger"
+        isLoading={submitting}
       />
+
+      {/* Embedded Print Stylesheet */}
+      <style>{`
+        @media print {
+          body {
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          .no-print,
+          aside,
+          header,
+          .modal-backdrop,
+          button {
+            display: none !important;
+          }
+          .print-document {
+            box-shadow: none !important;
+            border: 1px solid #cccccc !important;
+            padding: 20px !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+          }
+          .print-only {
+            display: block !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
+
 export default ReceiptDetailPage;

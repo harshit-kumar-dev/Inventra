@@ -27,7 +27,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <div
-      className="glass-card"
+      className="card"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -36,6 +36,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         padding: '48px 24px',
         textAlign: 'center',
         margin: '20px 0',
+        background: '#FFFFFF',
+        borderColor: 'var(--border-subtle)',
       }}
     >
       <div
@@ -43,12 +45,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           width: '56px',
           height: '56px',
           borderRadius: '50%',
-          background: 'rgba(59, 130, 246, 0.1)',
+          background: 'var(--color-surface-tint)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '16px',
-          color: 'var(--primary-400)',
+          color: 'var(--color-primary)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         {renderIcon()}

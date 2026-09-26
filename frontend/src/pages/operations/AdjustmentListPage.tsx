@@ -60,47 +60,59 @@ export const AdjustmentListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Scale className="w-7 h-7 text-amber-400" /> Physical Stock Adjustments
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', letterSpacing: '-0.02em' }}>
+            <Scale size={28} color="#B8892D" /> Physical Stock Adjustments
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Reconcile physical inventory counts against recorded system balances with audit trails
           </p>
         </div>
         <Link
           to="/adjustments/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/20 font-medium text-sm transition active:scale-95"
+          className="btn btn-accent"
         >
-          <Plus className="w-4 h-4" /> New Count / Adjustment
+          <Plus size={16} /> New Count / Adjustment
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      <div
+        className="card"
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '14px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <form onSubmit={handleSearchSubmit} style={{ position: 'relative', flex: '1 1 260px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search reason, ref number..."
-            className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="form-input"
+            style={{ paddingLeft: '38px' }}
           />
         </form>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Filter className="w-3.5 h-3.5" /> Filters:
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+            <Filter size={14} /> Filters:
           </div>
 
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="form-select"
+            style={{ width: 'auto', fontSize: '13px' }}
           >
             <option value="">All Statuses</option>
             <option value="DRAFT">DRAFT</option>
@@ -112,7 +124,8 @@ export const AdjustmentListPage: React.FC = () => {
           <select
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
-            className="bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            className="form-select"
+            style={{ width: 'auto', fontSize: '13px' }}
           >
             <option value="">All Warehouses</option>
             {warehouses.map((w) => (
@@ -138,60 +151,60 @@ export const AdjustmentListPage: React.FC = () => {
           onAction={() => navigate('/adjustments/new')}
         />
       ) : (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="px-6 py-3.5">Reference</th>
-                  <th className="px-6 py-3.5">Facility & Bin</th>
-                  <th className="px-6 py-3.5">Reason / Justification</th>
-                  <th className="px-6 py-3.5">Lines Count</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {adjustments.map((adj) => (
-                  <tr
-                    key={adj.id}
-                    onClick={() => navigate(`/adjustments/${adj.id}`)}
-                    className="hover:bg-slate-800/40 transition cursor-pointer group"
-                  >
-                    <td className="px-6 py-4 font-mono font-bold text-white text-sm group-hover:text-indigo-400 transition flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+        <div className="table-container animate-fade-in">
+          <table className="custom-table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Facility & Bin</th>
+                <th>Reason / Justification</th>
+                <th>Lines Count</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adjustments.map((adj) => (
+                <tr
+                  key={adj.id}
+                  onClick={() => navigate(`/adjustments/${adj.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#B8892D', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#B8892D' }} />
                       {adj.referenceNo}
-                    </td>
-                    <td className="px-6 py-4 text-slate-300">
-                      <div className="font-medium text-white flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                        {adj.warehouse?.name}
-                      </div>
-                      <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3 text-cyan-400" />
-                        {adj.location?.name} ({adj.location?.code})
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-300 text-xs">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">
-                        {adj.reason}
-                      </span>
-                      {adj.notes && <p className="text-[11px] text-slate-500 mt-1 truncate max-w-xs">{adj.notes}</p>}
-                    </td>
-                    <td className="px-6 py-4 text-slate-300 text-xs font-mono">
-                      <span className="font-semibold text-white">{adj.lines?.length || 0}</span> items reconciled
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={adj.status} />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition ml-auto" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Building2 size={14} color="var(--color-primary)" />
+                      {adj.warehouse?.name}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <MapPin size={12} color="var(--text-muted)" />
+                      {adj.location?.name} ({adj.location?.code})
+                    </div>
+                  </td>
+                  <td style={{ fontSize: '12.5px' }}>
+                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: 'var(--color-accent-soft)', color: '#9E7422', fontWeight: 600 }}>
+                      {adj.reason}
+                    </span>
+                    {adj.notes && <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{adj.notes}</p>}
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{adj.lines?.length || 0}</span> items reconciled
+                  </td>
+                  <td>
+                    <StatusBadge status={adj.status} />
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <ChevronRight size={16} color="var(--text-muted)" style={{ marginLeft: 'auto' }} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

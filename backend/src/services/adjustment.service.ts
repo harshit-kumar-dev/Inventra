@@ -363,7 +363,9 @@ export class AdjustmentService {
       });
 
       return updatedAdjustment;
-    });
+      },
+      { maxWait: 10000, timeout: 25000 }
+    );
   }
 
   /**

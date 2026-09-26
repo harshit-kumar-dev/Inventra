@@ -366,7 +366,9 @@ export class ReceiptService {
       });
 
       return updatedReceipt;
-    });
+      },
+      { maxWait: 10000, timeout: 25000 }
+    );
   }
 
   /**

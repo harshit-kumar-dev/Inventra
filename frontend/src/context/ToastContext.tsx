@@ -47,29 +47,29 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {/* Toast Notification Container */}
       <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px', pointerEvents: 'none' }}>
         {toasts.map((t) => {
-          let bgColor = 'rgba(15, 23, 42, 0.95)';
+          let bgColor = '#FFFFFF';
           let borderColor = 'var(--border-medium)';
-          let icon = <Info size={20} color="var(--primary-400)" />;
+          let icon = <Info size={20} color="var(--color-primary)" />;
 
           if (t.type === 'success') {
-            borderColor = 'var(--emerald-500)';
-            icon = <CheckCircle2 size={20} color="var(--emerald-400)" />;
+            borderColor = 'var(--color-primary)';
+            icon = <CheckCircle2 size={20} color="var(--color-primary)" />;
           } else if (t.type === 'error') {
             borderColor = 'var(--rose-500)';
-            icon = <AlertCircle size={20} color="var(--rose-400)" />;
+            icon = <AlertCircle size={20} color="var(--rose-500)" />;
           } else if (t.type === 'warning') {
-            borderColor = 'var(--amber-500)';
-            icon = <AlertTriangle size={20} color="var(--amber-400)" />;
+            borderColor = 'var(--color-accent)';
+            icon = <AlertTriangle size={20} color="var(--color-accent)" />;
           }
 
           return (
             <div
               key={t.id}
-              className="glass-card animate-fade-in"
+              className="animate-fade-in"
               style={{
                 pointerEvents: 'auto',
                 background: bgColor,
-                borderColor: borderColor,
+                border: `1px solid ${borderColor}`,
                 padding: '14px 18px',
                 borderRadius: 'var(--radius-md)',
                 minWidth: '320px',
@@ -77,7 +77,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '12px',
-                boxShadow: 'var(--shadow-lg)',
+                boxShadow: 'var(--shadow-md)',
               }}
             >
               <div style={{ flexShrink: 0, marginTop: '2px' }}>{icon}</div>

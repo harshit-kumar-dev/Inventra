@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export interface ModalProps {
@@ -42,10 +43,10 @@ export const Modal: React.FC<ModalProps> = ({
     if (size === 'xl') computedMaxWidth = '1020px';
   }
 
-  return (
+  const modalNode = (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-content animate-fade-in"
+        className="modal-content"
         style={{ maxWidth: computedMaxWidth }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -59,9 +60,11 @@ export const Modal: React.FC<ModalProps> = ({
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{title}</h3>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close modal"
             style={{
               background: 'transparent',
               border: 'none',
@@ -69,6 +72,9 @@ export const Modal: React.FC<ModalProps> = ({
               cursor: 'pointer',
               padding: '4px',
               borderRadius: 'var(--radius-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <X size={20} />
@@ -78,5 +84,8 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalNode, document.body);
 };
+
 export default Modal;

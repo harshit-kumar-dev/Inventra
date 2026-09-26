@@ -238,38 +238,40 @@ export const AdjustmentDetailPage: React.FC = () => {
   const isLocked = isDone || isCanceled;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
             onClick={() => navigate('/adjustments')}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition"
+            className="btn btn-secondary"
+            style={{ padding: '8px' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                 {isNew ? 'New Stock Adjustment / Count' : adjustment?.referenceNo}
               </h1>
               {adjustment && <StatusBadge status={adjustment.status} />}
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
               {isNew ? 'Reconcile physical on-hand stock with book inventory' : `Created on ${new Date(adjustment!.createdAt).toLocaleString()}`}
             </p>
           </div>
         </div>
 
         {!isNew && adjustment && !isLocked && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
             {adjustment.status === 'DRAFT' && (
               <button
                 onClick={handleMarkReady}
                 disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-blue-600/20"
+                className="btn btn-accent"
+                style={{ fontSize: '13px' }}
               >
-                <PlayCircle className="w-4 h-4" /> Mark Ready
+                <PlayCircle size={15} /> Mark Ready
               </button>
             )}
 
@@ -277,18 +279,20 @@ export const AdjustmentDetailPage: React.FC = () => {
               <button
                 onClick={() => setConfirmValidateOpen(true)}
                 disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition shadow-lg shadow-emerald-600/20"
+                className="btn btn-primary"
+                style={{ fontSize: '13px' }}
               >
-                <CheckCircle2 className="w-4 h-4" /> Validate & Post Variance
+                <CheckCircle2 size={15} /> Validate & Post Variance
               </button>
             )}
 
             <button
               onClick={() => setConfirmCancelOpen(true)}
               disabled={submitting}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400 border border-slate-700 rounded-xl text-sm transition"
+              className="btn btn-danger"
+              style={{ fontSize: '13px' }}
             >
-              <XCircle className="w-4 h-4" /> Cancel
+              <XCircle size={15} /> Cancel
             </button>
           </div>
         )}
@@ -296,19 +300,21 @@ export const AdjustmentDetailPage: React.FC = () => {
 
       {/* Form or Detail View */}
       {isNew ? (
-        <form onSubmit={handleCreateSubmit} className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">Target Location & Justification</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Warehouse Facility <span className="text-rose-400">*</span>
+        <form onSubmit={handleCreateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Target Location & Justification
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">
+                  Warehouse Facility <span style={{ color: 'var(--status-canceled-text)' }}>*</span>
                 </label>
                 <select
                   required
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
                   <option value="">Select Warehouse</option>
                   {warehouses.map((w) => (
@@ -319,15 +325,15 @@ export const AdjustmentDetailPage: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Specific Rack / Bin Location <span className="text-rose-400">*</span>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">
+                  Specific Rack / Bin Location <span style={{ color: 'var(--status-canceled-text)' }}>*</span>
                 </label>
                 <select
                   required
                   value={locationId}
                   onChange={(e) => handleLocationChange(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
                   <option value="">Select Location</option>
                   {locations.map((l) => (
@@ -338,15 +344,15 @@ export const AdjustmentDetailPage: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Adjustment Reason <span className="text-rose-400">*</span>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">
+                  Adjustment Reason <span style={{ color: 'var(--status-canceled-text)' }}>*</span>
                 </label>
                 <select
                   required
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="form-select"
                 >
                   <option value="ANNUAL_COUNT">Annual Physical Inventory Count</option>
                   <option value="CYCLE_COUNT">Routine Cycle Count</option>
@@ -357,46 +363,60 @@ export const AdjustmentDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2">
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Audit Notes / Investigation Details
-              </label>
+            <div style={{ paddingTop: '8px' }}>
+              <label className="form-label">Audit Notes / Investigation Details</label>
               <input
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g., Physical box recount confirmed 3 units damaged by water leak"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                className="form-input"
               />
             </div>
           </div>
 
           {/* Lines Table with real-time delta */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">Physical Count Entries</h2>
+          <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Physical Count Entries
+              </h2>
               <button
                 type="button"
                 onClick={handleAddLine}
-                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20 transition"
+                className="btn btn-secondary"
+                style={{ fontSize: '12px', padding: '6px 12px' }}
               >
-                <Plus className="w-3.5 h-3.5" /> Add Count Line
+                <Plus size={14} /> Add Count Line
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {lines.map((line, idx) => {
                 const isGain = line.delta > 0;
                 const isLoss = line.delta < 0;
                 return (
-                  <div key={idx} className="flex flex-col lg:flex-row items-end gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs text-slate-400 mb-1">Product</label>
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-end',
+                      gap: '12px',
+                      padding: '14px',
+                      background: '#FAF8F5',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                    }}
+                  >
+                    <div style={{ flex: '1 1 240px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Product</label>
                       <select
                         required
                         value={line.productId}
                         onChange={(e) => handleLineChange(idx, 'productId', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="form-select"
+                        style={{ fontSize: '13px' }}
                       >
                         <option value="">Select Item</option>
                         {products.map((p) => (
@@ -407,38 +427,51 @@ export const AdjustmentDetailPage: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="w-full lg:w-36">
-                      <label className="block text-xs text-slate-400 mb-1">Recorded System Qty</label>
+                    <div style={{ width: '140px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Recorded System Qty</label>
                       <input
                         type="text"
                         readOnly
                         value={line.recordedQuantity}
-                        className="w-full bg-slate-950 border border-slate-800 text-slate-400 text-xs rounded-lg px-3 py-2 font-mono"
+                        className="form-input"
+                        style={{ background: '#F5EFE3', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
                       />
                     </div>
 
-                    <div className="w-full lg:w-36">
-                      <label className="block text-xs text-slate-400 mb-1">Physical Counted Qty</label>
+                    <div style={{ width: '140px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Physical Counted Qty</label>
                       <input
                         type="number"
                         required
                         min={0}
                         value={line.countedQuantity}
                         onChange={(e) => handleLineChange(idx, 'countedQuantity', e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="form-input"
+                        style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}
                       />
                     </div>
 
-                    <div className="w-full lg:w-32">
-                      <label className="block text-xs text-slate-400 mb-1">Calculated Delta</label>
-                      <div className={`px-3 py-2 rounded-lg border text-xs font-mono font-bold flex items-center justify-between ${
-                        isGain ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
-                        isLoss ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' :
-                        'bg-slate-800 border-slate-700 text-slate-400'
-                      }`}>
+                    <div style={{ width: '140px' }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>Calculated Delta</label>
+                      <div
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid',
+                          fontSize: '13px',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: isGain ? 'var(--status-done-bg)' : isLoss ? 'var(--status-canceled-bg)' : '#F5EFE3',
+                          borderColor: isGain ? 'var(--status-done-border)' : isLoss ? 'var(--status-canceled-border)' : 'var(--border-medium)',
+                          color: isGain ? 'var(--status-done-text)' : isLoss ? 'var(--status-canceled-text)' : 'var(--text-muted)',
+                        }}
+                      >
                         <span>{isGain ? `+${line.delta}` : line.delta}</span>
-                        {isGain && <ArrowUpRight className="w-3.5 h-3.5" />}
-                        {isLoss && <ArrowDownRight className="w-3.5 h-3.5" />}
+                        {isGain && <ArrowUpRight size={14} />}
+                        {isLoss && <ArrowDownRight size={14} />}
                       </div>
                     </div>
 
@@ -446,10 +479,11 @@ export const AdjustmentDetailPage: React.FC = () => {
                       type="button"
                       onClick={() => handleRemoveLine(idx)}
                       disabled={lines.length <= 1}
-                      className="p-2 text-slate-500 hover:text-rose-400 disabled:opacity-30 transition rounded-lg"
+                      className="btn btn-secondary"
+                      style={{ padding: '8px', color: 'var(--status-canceled-text)' }}
                       title="Remove Line"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 );
@@ -457,99 +491,121 @@ export const AdjustmentDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
             <button
               type="button"
               onClick={() => navigate('/adjustments')}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
+              className="btn btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
+              className="btn btn-primary"
             >
               {submitting ? 'Creating Count Order...' : 'Save Count as Draft'}
             </button>
           </div>
         </form>
       ) : adjustment ? (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Header Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Facility & Location</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-cyan-400" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Facility & Location</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Building2 size={15} color="var(--color-primary)" />
                 {adjustment.warehouse?.name}
               </div>
-              <span className="text-xs font-mono text-slate-400">{adjustment.location?.name} ({adjustment.location?.code})</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                {adjustment.location?.name} ({adjustment.location?.code})
+              </span>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Adjustment Reason</span>
-              <div className="mt-1 font-bold text-white flex items-center gap-1.5">
-                <Scale className="w-4 h-4 text-amber-400" />
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Adjustment Reason</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Scale size={15} color="var(--color-accent)" />
                 {adjustment.reason}
               </div>
-              <span className="text-xs text-slate-400 truncate block">{adjustment.notes || 'Standard cycle count'}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {adjustment.notes || 'Standard cycle count'}
+              </span>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Validation Status</span>
-              <div className="mt-1 font-bold text-white">
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Validation Status</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {adjustment.validator?.name ? `Validated by ${adjustment.validator.name}` : 'Pending Validation'}
               </div>
-              <span className="text-xs text-slate-400">Created by {adjustment.creator?.name || 'Staff'}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                Created by {adjustment.creator?.name || 'Staff'}
+              </span>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Timestamp</span>
-              <div className="mt-1 font-bold text-white">
+            <div className="card" style={{ padding: '16px 18px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Timestamp</span>
+              <div style={{ marginTop: '4px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {new Date(adjustment.createdAt).toLocaleDateString()}
               </div>
-              <span className="text-xs text-slate-400">{new Date(adjustment.createdAt).toLocaleTimeString()}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                {new Date(adjustment.createdAt).toLocaleTimeString()}
+              </span>
             </div>
           </div>
 
           {/* Lines Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Box className="w-5 h-5 text-indigo-400" /> Reconciled Items
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#FAF8F5',
+              }}
+            >
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Box size={18} color="var(--color-primary)" /> Reconciled Items
               </h2>
-              <span className="text-xs text-slate-400">{adjustment.lines?.length || 0} Items</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{adjustment.lines?.length || 0} Items</span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="custom-table">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    <th className="px-6 py-3.5">Product</th>
-                    <th className="px-6 py-3.5">SKU</th>
-                    <th className="px-6 py-3.5 text-right">System Recorded</th>
-                    <th className="px-6 py-3.5 text-right">Physical Counted</th>
-                    <th className="px-6 py-3.5 text-right">Adjustment Delta</th>
+                  <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th style={{ textAlign: 'right' }}>System Recorded</th>
+                    <th style={{ textAlign: 'right' }}>Physical Counted</th>
+                    <th style={{ textAlign: 'right' }}>Adjustment Delta</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody>
                   {adjustment.lines?.map((line, idx) => {
                     const isGain = line.delta > 0;
                     const isLoss = line.delta < 0;
                     return (
-                      <tr key={idx} className="hover:bg-slate-800/40 transition">
-                        <td className="px-6 py-4 font-medium text-white">{line.product?.name}</td>
-                        <td className="px-6 py-4 font-mono text-cyan-400 text-xs">{line.product?.sku}</td>
-                        <td className="px-6 py-4 text-right font-mono text-slate-400">
+                      <tr key={idx}>
+                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{line.product?.name}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-primary)' }}>{line.product?.sku}</td>
+                        <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                           {line.previousQuantity} {line.product?.uom?.symbol || ''}
                         </td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-white">
+                        <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {line.countedQuantity} {line.product?.uom?.symbol || ''}
                         </td>
-                        <td className={`px-6 py-4 text-right font-mono font-bold ${
-                          isGain ? 'text-emerald-400' : isLoss ? 'text-rose-400' : 'text-slate-400'
-                        }`}>
+                        <td
+                          style={{
+                            textAlign: 'right',
+                            fontFamily: 'var(--font-mono)',
+                            fontWeight: 700,
+                            color: isGain ? 'var(--color-primary)' : isLoss ? 'var(--status-canceled-text)' : 'var(--text-muted)',
+                          }}
+                        >
                           {isGain ? `+${line.delta}` : line.delta} {line.product?.uom?.symbol || ''}
                         </td>
                       </tr>
