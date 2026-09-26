@@ -44,6 +44,15 @@ export class WarehouseController {
     }
   }
 
+  static async deleteWarehouse(req: Request, res: Response): Promise<void> {
+    try {
+      await WarehouseService.deleteWarehouse(req.params.id as string);
+      res.json({ success: true, message: 'Warehouse deleted successfully' });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
   static async getLocations(req: Request, res: Response): Promise<void> {
     try {
       const warehouseId = req.query.warehouseId as string | undefined;
@@ -77,6 +86,15 @@ export class WarehouseController {
     try {
       const location = await WarehouseService.updateLocation(req.params.id as string, req.body);
       res.json({ success: true, data: { location } });
+    } catch (error: any) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  static async deleteLocation(req: Request, res: Response): Promise<void> {
+    try {
+      await WarehouseService.deleteLocation(req.params.id as string);
+      res.json({ success: true, message: 'Location deleted successfully' });
     } catch (error: any) {
       res.status(400).json({ success: false, message: error.message });
     }

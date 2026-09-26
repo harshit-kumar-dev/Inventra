@@ -6,7 +6,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { Modal } from '../../components/Modal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useToast } from '../../context/ToastContext';
-import { Building2, Plus, MapPin, ChevronRight, Edit2, Layers, CheckCircle2 } from 'lucide-react';
+import { Building2, Plus, MapPin, ChevronRight, Edit2, CheckCircle2 } from 'lucide-react';
 
 export const WarehouseListPage: React.FC = () => {
   const { showToast } = useToast();
@@ -65,8 +65,11 @@ export const WarehouseListPage: React.FC = () => {
     setWhModalOpen(true);
   };
 
-  const handleOpenWhEdit = (wh: Warehouse, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleOpenWhEdit = (wh: Warehouse, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setEditingWh(wh);
     setWhName(wh.name);
     setWhCode(wh.code);
@@ -76,6 +79,7 @@ export const WarehouseListPage: React.FC = () => {
 
   const handleWhSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!whName.trim() || !whCode.trim()) return;
     setSavingWh(true);
     try {
       if (editingWh) {
@@ -84,17 +88,17 @@ export const WarehouseListPage: React.FC = () => {
           code: whCode,
           address: whAddress,
         });
-        showToast('success', 'Warehouse Updated', `Warehouse ${whName} saved successfully.`);
+        showToast('success', 'Warehouse Updated', `Warehouse "${whName}" updated successfully.`);
       } else {
         await warehouseApi.createWarehouse({
           name: whName,
           code: whCode,
           address: whAddress,
         });
-        showToast('success', 'Warehouse Created', `Warehouse ${whName} created successfully.`);
+        showToast('success', 'Warehouse Created', `Warehouse "${whName}" created successfully.`);
       }
       setWhModalOpen(false);
-      loadWarehouses();
+      await loadWarehouses();
     } catch (err: any) {
       showToast('error', 'Error Saving Warehouse', err.message);
     } finally {
@@ -111,7 +115,11 @@ export const WarehouseListPage: React.FC = () => {
     setLocModalOpen(true);
   };
 
-  const handleOpenLocEdit = (loc: Location) => {
+  const handleOpenLocEdit = (loc: Location, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setEditingLoc(loc);
     setLocName(loc.name);
     setLocCode(loc.code);
@@ -121,7 +129,7 @@ export const WarehouseListPage: React.FC = () => {
 
   const handleLocSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedWarehouse) return;
+    if (!selectedWarehouse || !locName.trim() || !locCode.trim()) return;
     setSavingLoc(true);
     try {
       if (editingLoc) {
@@ -130,7 +138,7 @@ export const WarehouseListPage: React.FC = () => {
           code: locCode,
           type: locType,
         });
-        showToast('success', 'Location Updated', `Location ${locName} saved.`);
+        showToast('success', 'Location Updated', `Location "${locName}" updated.`);
       } else {
         await warehouseApi.createLocation({
           warehouseId: selectedWarehouse.id,
@@ -138,10 +146,10 @@ export const WarehouseListPage: React.FC = () => {
           code: locCode,
           type: locType,
         });
-        showToast('success', 'Location Added', `Location ${locName} created.`);
+        showToast('success', 'Location Added', `Location "${locName}" created.`);
       }
       setLocModalOpen(false);
-      loadWarehouses();
+      await loadWarehouses();
     } catch (err: any) {
       showToast('error', 'Error Saving Location', err.message);
     } finally {
@@ -149,26 +157,41 @@ export const WarehouseListPage: React.FC = () => {
     }
   };
 
-  if (loading) return <LoadingState text="Loading warehouse topological structures..." />;
+  if (loading) return <LoadingState message="Loading warehouse topological structures..." />;
   if (error) return <ErrorState message={error} onRetry={loadWarehouses} />;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-indigo-400" /> Warehouses & Storage Locations
+          <h1
+            style={{
+              fontSize: '24px',
+              fontWeight: 800,
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <Building2 size={26} color="var(--color-primary)" />
+            Warehouses & Storage Locations
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             Manage multi-warehouse facilities and granular internal storage racks
           </p>
         </div>
-        <button
-          onClick={handleOpenWhCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/20 font-medium text-sm transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" /> Add Warehouse
+        <button onClick={handleOpenWhCreate} className="btn btn-primary">
+          <Plus size={16} /> Add Warehouse
         </button>
       </div>
 
@@ -181,58 +204,111 @@ export const WarehouseListPage: React.FC = () => {
           onAction={handleOpenWhCreate}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(280px, 1fr) 2fr',
+            gap: '24px',
+            alignItems: 'flex-start',
+          }}
+        >
           {/* Warehouse Selector Panel */}
-          <div className="space-y-3">
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <h2
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                color: 'var(--text-secondary)',
+                paddingLeft: '4px',
+              }}
+            >
               Facilities ({warehouses.length})
             </h2>
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {warehouses.map((wh) => {
                 const isSelected = selectedWarehouse?.id === wh.id;
                 return (
                   <div
                     key={wh.id}
                     onClick={() => setSelectedWarehouse(wh)}
-                    className={`p-4 rounded-xl border transition cursor-pointer flex items-center justify-between group ${
-                      isSelected
-                        ? 'bg-indigo-600/10 border-indigo-500 shadow-md ring-1 ring-indigo-500/50'
-                        : 'bg-slate-900 border-slate-800 hover:border-slate-700'
-                    }`}
+                    style={{
+                      padding: '16px',
+                      borderRadius: 'var(--radius-lg)',
+                      border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                      background: isSelected ? 'var(--color-surface-tint)' : '#FFFFFF',
+                      boxShadow: isSelected ? '0 0 0 1px var(--color-primary), var(--shadow-sm)' : 'var(--shadow-sm)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      transition: 'all 0.2s ease',
+                    }}
                   >
-                    <div className="flex items-center gap-3">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white shadow-md'
-                            : 'bg-slate-800 text-slate-300 border border-slate-700'
-                        }`}
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: 'var(--radius-md)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          background: isSelected ? 'var(--color-primary)' : 'var(--color-background)',
+                          color: isSelected ? '#FFFFFF' : 'var(--color-primary)',
+                          border: isSelected ? 'none' : '1px solid var(--border-medium)',
+                        }}
                       >
                         {wh.code}
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm group-hover:text-indigo-300 transition flex items-center gap-2">
+                        <div
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: isSelected ? 'var(--color-primary)' : 'var(--text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
                           {wh.name}
                           {!wh.active && <StatusBadge status="INACTIVE" />}
                         </div>
-                        <span className="text-xs text-slate-400">
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                           {wh.locations?.length || wh._count?.locations || 0} sub-locations
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <button
                         onClick={(e) => handleOpenWhEdit(wh, e)}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                        style={{
+                          padding: '6px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                         title="Edit Facility"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 size={15} />
                       </button>
                       <ChevronRight
-                        className={`w-5 h-5 transition ${
-                          isSelected ? 'text-indigo-400 translate-x-1' : 'text-slate-600'
-                        }`}
+                        size={18}
+                        style={{
+                          color: isSelected ? 'var(--color-primary)' : 'var(--text-muted)',
+                          transform: isSelected ? 'translateX(2px)' : 'none',
+                          transition: 'transform 0.2s ease',
+                        }}
                       />
                     </div>
                   </div>
@@ -242,79 +318,135 @@ export const WarehouseListPage: React.FC = () => {
           </div>
 
           {/* Location details for Selected Warehouse */}
-          <div className="lg:col-span-2 space-y-4">
+          <div>
             {selectedWarehouse ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-                <div className="p-5 border-b border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    padding: '20px',
+                    borderBottom: '1px solid var(--border-subtle)',
+                    background: 'var(--color-surface-tint)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-white">{selectedWarehouse.name}</h2>
-                      <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-xs font-mono font-bold">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                        {selectedWarehouse.name}
+                      </h2>
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '12px',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 700,
+                          background: 'var(--color-background)',
+                          color: 'var(--color-primary)',
+                          border: '1px solid var(--color-surface)',
+                        }}
+                      >
                         {selectedWarehouse.code}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '3px' }}>
                       {selectedWarehouse.address || 'No physical address specified'}
                     </p>
                   </div>
 
                   <button
                     onClick={handleOpenLocCreate}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition shadow-sm"
+                    className="btn btn-primary"
+                    style={{ fontSize: '13px', padding: '6px 14px' }}
                   >
-                    <Plus className="w-3.5 h-3.5" /> Add Location
+                    <Plus size={14} /> Add Location
                   </button>
                 </div>
 
                 {/* Locations Table */}
                 {(!selectedWarehouse.locations || selectedWarehouse.locations.length === 0) ? (
-                  <div className="p-8 text-center text-slate-400 text-sm">
-                    <MapPin className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+                  <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                    <MapPin size={36} color="var(--text-muted)" style={{ margin: '0 auto 12px' }} />
                     No locations added in this warehouse yet. Click "Add Location" to define storage zones.
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-sm">
+                  <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+                    <table className="custom-table">
                       <thead>
-                        <tr className="border-b border-slate-800 bg-slate-950/20 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                          <th className="px-6 py-3">Location Name</th>
-                          <th className="px-6 py-3">Code</th>
-                          <th className="px-6 py-3">Type</th>
-                          <th className="px-6 py-3">Status</th>
-                          <th className="px-6 py-3 text-right">Actions</th>
+                        <tr>
+                          <th>Location Name</th>
+                          <th>Code</th>
+                          <th>Type</th>
+                          <th>Status</th>
+                          <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800">
+                      <tbody>
                         {selectedWarehouse.locations.map((loc) => (
-                          <tr key={loc.id} className="hover:bg-slate-800/40 transition">
-                            <td className="px-6 py-3.5 font-medium text-white flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-indigo-400" />
-                              {loc.name}
+                          <tr key={loc.id}>
+                            <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <MapPin size={15} color="var(--color-primary)" />
+                                {loc.name}
+                              </div>
                             </td>
-                            <td className="px-6 py-3.5 font-mono text-cyan-400 text-xs font-semibold">
-                              {loc.code}
+                            <td>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                                {loc.code}
+                              </span>
                             </td>
-                            <td className="px-6 py-3.5">
-                              <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-xs">
+                            <td>
+                              <span
+                                style={{
+                                  padding: '2px 8px',
+                                  borderRadius: 'var(--radius-sm)',
+                                  fontSize: '11.5px',
+                                  fontWeight: 600,
+                                  background: 'var(--color-surface-tint)',
+                                  color: 'var(--text-secondary)',
+                                  border: '1px solid var(--border-subtle)',
+                                }}
+                              >
                                 {loc.type}
                               </span>
                             </td>
-                            <td className="px-6 py-3.5">
+                            <td>
                               {loc.active ? (
-                                <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-medium">
-                                  <CheckCircle2 className="w-3.5 h-3.5" /> Active
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    color: 'var(--color-primary)',
+                                  }}
+                                >
+                                  <CheckCircle2 size={13} /> Active
                                 </span>
                               ) : (
                                 <StatusBadge status="INACTIVE" />
                               )}
                             </td>
-                            <td className="px-6 py-3.5 text-right">
+                            <td style={{ textAlign: 'right' }}>
                               <button
-                                onClick={() => handleOpenLocEdit(loc)}
-                                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                                type="button"
+                                onClick={(e) => handleOpenLocEdit(loc, e)}
+                                style={{
+                                  padding: '6px',
+                                  borderRadius: 'var(--radius-sm)',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: 'var(--text-muted)',
+                                  cursor: 'pointer',
+                                }}
                                 title="Edit Location"
                               >
-                                <Edit2 className="w-4 h-4" />
+                                <Edit2 size={15} />
                               </button>
                             </td>
                           </tr>
@@ -325,7 +457,7 @@ export const WarehouseListPage: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center text-slate-400">
+              <div className="card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                 Select a warehouse from the list to view and manage its storage racks.
               </div>
             )}
@@ -338,12 +470,11 @@ export const WarehouseListPage: React.FC = () => {
         isOpen={whModalOpen}
         onClose={() => setWhModalOpen(false)}
         title={editingWh ? 'Edit Warehouse Facility' : 'Create Warehouse Facility'}
-        size="md"
       >
-        <form onSubmit={handleWhSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Warehouse Name <span className="text-rose-400">*</span>
+        <form onSubmit={handleWhSubmit}>
+          <div className="form-group">
+            <label className="form-label">
+              Warehouse Name <span style={{ color: 'var(--rose-400)' }}>*</span>
             </label>
             <input
               type="text"
@@ -351,13 +482,13 @@ export const WarehouseListPage: React.FC = () => {
               value={whName}
               onChange={(e) => setWhName(e.target.value)}
               placeholder="e.g., Central Distribution Center"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              className="form-input"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Unique Code <span className="text-rose-400">*</span>
+          <div className="form-group">
+            <label className="form-label">
+              Unique Code <span style={{ color: 'var(--rose-400)' }}>*</span>
             </label>
             <input
               type="text"
@@ -365,35 +496,34 @@ export const WarehouseListPage: React.FC = () => {
               value={whCode}
               onChange={(e) => setWhCode(e.target.value.toUpperCase())}
               placeholder="e.g., WH-MAIN"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition uppercase"
+              className="form-input"
+              style={{ fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Address / Location Details
-            </label>
+          <div className="form-group">
+            <label className="form-label">Address / Location Details</label>
             <textarea
               rows={2}
               value={whAddress}
               onChange={(e) => setWhAddress(e.target.value)}
               placeholder="Physical street address or campus zone..."
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
+              className="form-textarea"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
             <button
               type="button"
               onClick={() => setWhModalOpen(false)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
+              className="btn btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={savingWh}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
+              className="btn btn-primary"
             >
               {savingWh ? 'Saving...' : editingWh ? 'Update Facility' : 'Create Facility'}
             </button>
@@ -405,13 +535,12 @@ export const WarehouseListPage: React.FC = () => {
       <Modal
         isOpen={locModalOpen}
         onClose={() => setLocModalOpen(false)}
-        title={editingLoc ? 'Edit Storage Location' : `Add Location in ${selectedWarehouse?.name}`}
-        size="md"
+        title={editingLoc ? 'Edit Storage Location' : `Add Location in ${selectedWarehouse?.name || 'Warehouse'}`}
       >
-        <form onSubmit={handleLocSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Location Name <span className="text-rose-400">*</span>
+        <form onSubmit={handleLocSubmit}>
+          <div className="form-group">
+            <label className="form-label">
+              Location Name <span style={{ color: 'var(--rose-400)' }}>*</span>
             </label>
             <input
               type="text"
@@ -419,13 +548,13 @@ export const WarehouseListPage: React.FC = () => {
               value={locName}
               onChange={(e) => setLocName(e.target.value)}
               placeholder="e.g., Rack A-12, Bin 4"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              className="form-input"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Location Code <span className="text-rose-400">*</span>
+          <div className="form-group">
+            <label className="form-label">
+              Location Code <span style={{ color: 'var(--rose-400)' }}>*</span>
             </label>
             <input
               type="text"
@@ -433,18 +562,17 @@ export const WarehouseListPage: React.FC = () => {
               value={locCode}
               onChange={(e) => setLocCode(e.target.value.toUpperCase())}
               placeholder="e.g., LOC-A1"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition uppercase"
+              className="form-input"
+              style={{ fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Location Type
-            </label>
+          <div className="form-group">
+            <label className="form-label">Location Type</label>
             <select
               value={locType}
               onChange={(e) => setLocType(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              className="form-select"
             >
               <option value="INTERNAL">Internal Storage</option>
               <option value="INPUT">Receiving Dock / Input</option>
@@ -453,18 +581,18 @@ export const WarehouseListPage: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
             <button
               type="button"
               onClick={() => setLocModalOpen(false)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
+              className="btn btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={savingLoc}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
+              className="btn btn-primary"
             >
               {savingLoc ? 'Saving...' : editingLoc ? 'Update Location' : 'Save Location'}
             </button>

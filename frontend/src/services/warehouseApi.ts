@@ -13,6 +13,11 @@ export interface Location {
     quantity: number;
     product: { id: string; name: string; sku: string; uom: { name: string; symbol: string } };
   }>;
+  _count?: {
+    stockQuantities: number;
+    receiptLines: number;
+    deliveryLines: number;
+  };
   createdAt?: string;
 }
 
@@ -23,7 +28,15 @@ export interface Warehouse {
   address?: string;
   active: boolean;
   locations?: Location[];
-  _count?: { locations: number };
+  _count?: {
+    locations: number;
+    receipts?: number;
+    deliveries?: number;
+    sourceTransfers?: number;
+    destinationTransfers?: number;
+    stockAdjustments?: number;
+    ledgerEntries?: number;
+  };
   createdAt?: string;
 }
 
@@ -47,6 +60,10 @@ export const warehouseApi = {
     return api.put<{ warehouse: Warehouse }>(`/warehouses/${id}`, data);
   },
 
+  deleteWarehouse: (id: string) => {
+    return api.delete<{ message: string }>(`/warehouses/${id}`);
+  },
+
   getLocations: (warehouseId?: string) => {
     return api.get<{ locations: Location[] }>('/warehouses/locations/all', {
       warehouseId,
@@ -64,8 +81,12 @@ export const warehouseApi = {
 
   updateLocation: (
     id: string,
-    data: { name?: string; code?: string; type?: string; active?: boolean }
+    data: { warehouseId?: string; name?: string; code?: string; type?: string; active?: boolean }
   ) => {
     return api.put<{ location: Location }>(`/warehouses/locations/${id}`, data);
+  },
+
+  deleteLocation: (id: string) => {
+    return api.delete<{ message: string }>(`/warehouses/locations/${id}`);
   },
 };

@@ -44,7 +44,11 @@ export const CategoryListPage: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleOpenEdit = (cat: Category) => {
+  const handleOpenEdit = (cat: Category, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setEditingCategory(cat);
     setName(cat.name);
     setDescription(cat.description || '');
@@ -65,7 +69,7 @@ export const CategoryListPage: React.FC = () => {
         showToast('success', 'Category Created', `Category "${name}" was created successfully.`);
       }
       setModalOpen(false);
-      loadCategories();
+      await loadCategories();
     } catch (err: any) {
       showToast('error', 'Operation Failed', err.message);
     } finally {
@@ -74,24 +78,42 @@ export const CategoryListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Layers className="w-7 h-7 text-indigo-400" /> Product Categories
+          <h1
+            style={{
+              fontSize: '24px',
+              fontWeight: 800,
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <Layers size={26} color="var(--color-primary)" />
+            Product Categories
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Organize products into hierarchical classification groups</p>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            Organize products into hierarchical classification groups
+          </p>
         </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/20 font-medium text-sm transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" /> Add Category
+        <button onClick={handleOpenCreate} className="btn btn-primary">
+          <Plus size={16} /> Add Category
         </button>
       </div>
 
       {loading ? (
-        <LoadingState text="Loading categories..." />
+        <LoadingState message="Loading categories..." />
       ) : error ? (
         <ErrorState message={error} onRetry={loadCategories} />
       ) : categories.length === 0 ? (
@@ -103,45 +125,125 @@ export const CategoryListPage: React.FC = () => {
           onAction={handleOpenCreate}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: '20px',
+          }}
+        >
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between group shadow-sm"
+              className="card"
+              style={{
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                background: '#FFFFFF',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
             >
               <div>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                      <Tag className="w-5 h-5" />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--color-surface-tint)',
+                        border: '1px solid var(--border-subtle)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--color-primary)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Tag size={20} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white text-base group-hover:text-indigo-300 transition">
+                      <h3
+                        style={{
+                          fontSize: '16px',
+                          fontWeight: 700,
+                          color: 'var(--text-primary)',
+                          margin: 0,
+                        }}
+                      >
                         {cat.name}
                       </h3>
-                      <span className="text-xs text-slate-400">
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                         {cat._count?.products || 0} Products mapped
                       </span>
                     </div>
                   </div>
 
                   <button
-                    onClick={() => handleOpenEdit(cat)}
-                    className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                    type="button"
+                    onClick={(e) => handleOpenEdit(cat, e)}
+                    style={{
+                      padding: '6px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      background: 'transparent',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                     title="Edit Category"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 size={16} />
                   </button>
                 </div>
 
-                <p className="text-sm text-slate-400 mt-3 line-clamp-2">
+                <p
+                  style={{
+                    fontSize: '13.5px',
+                    color: 'var(--text-secondary)',
+                    marginTop: '14px',
+                    lineHeight: 1.5,
+                  }}
+                >
                   {cat.description || 'No description provided.'}
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+              <div
+                style={{
+                  marginTop: '20px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '12px',
+                  color: 'var(--text-muted)',
+                }}
+              >
                 <span>Category ID</span>
-                <span className="font-mono text-slate-400 truncate max-w-[120px]">{cat.id}</span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--text-muted)',
+                    fontSize: '11px',
+                  }}
+                >
+                  {cat.id}
+                </span>
               </div>
             </div>
           ))}
@@ -153,12 +255,11 @@ export const CategoryListPage: React.FC = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={editingCategory ? 'Edit Category' : 'Create New Category'}
-        size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Category Name <span className="text-rose-400">*</span>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">
+              Category Name <span style={{ color: 'var(--rose-400)' }}>*</span>
             </label>
             <input
               type="text"
@@ -166,12 +267,12 @@ export const CategoryListPage: React.FC = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Electronics, Raw Materials"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              className="form-input"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+          <div className="form-group">
+            <label className="form-label">
               Description
             </label>
             <textarea
@@ -179,22 +280,22 @@ export const CategoryListPage: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional notes or classification details..."
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
+              className="form-textarea"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition"
+              className="btn btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition shadow-lg shadow-indigo-600/20"
+              className="btn btn-primary"
             >
               {saving ? 'Saving...' : editingCategory ? 'Save Changes' : 'Create Category'}
             </button>
