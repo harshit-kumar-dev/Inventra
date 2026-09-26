@@ -119,7 +119,7 @@ export class AuthService {
       return { message: 'If this email is registered, a 6-digit reset OTP has been sent.' };
     }
 
-    // Check resend cooldown (60 seconds)
+    // Check resend cooldown (30 seconds)
     const recentOTP = await prisma.passwordResetOTP.findFirst({
       where: {
         userId: user.id,
@@ -131,8 +131,8 @@ export class AuthService {
 
     if (recentOTP) {
       const secondsSinceCreation = (Date.now() - new Date(recentOTP.createdAt).getTime()) / 1000;
-      if (secondsSinceCreation < 60) {
-        const remainingSeconds = Math.ceil(60 - secondsSinceCreation);
+      if (secondsSinceCreation < 30) {
+        const remainingSeconds = Math.ceil(30 - secondsSinceCreation);
         throw {
           statusCode: 429,
           message: `Please wait ${remainingSeconds} seconds before requesting a new OTP.`,
@@ -161,10 +161,20 @@ export class AuthService {
       },
     });
 
-    // Send through Brevo SMTP
-    await sendPasswordResetEmail(user.email, user.name, rawOTP);
+    console.log(`\n========================================`);
+    console.log(`🔑 [PASSWORD RESET OTP] For ${user.email} (${user.name}): ${rawOTP}`);
+    console.log(`⏱️  Expires at: ${expiresAt.toISOString()}`);
+    console.log(`========================================\n`);
 
-    return { message: 'If this email is registered, a 6-digit reset OTP has been sent.' };
+    // Send through Brevo SMTP
+    const sent = await sendPasswordResetEmail(user.email, user.name, rawOTP);
+    if (!sent) {
+      console.warn(`⚠️ Brevo SMTP could not deliver email to ${user.email}. Use console OTP: ${rawOTP}`);
+    }
+
+    return {
+      message: 'If this email is registered, a 6-digit reset OTP has been sent to your email address.',
+    };
   }
 
   /**

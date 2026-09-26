@@ -7,8 +7,6 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  console.error('💥 Unhandled Exception:', err);
-
   // Prisma Unique Constraint Violation
   if (err.code === 'P2002') {
     const target = (err.meta?.target as string[]) || [];
@@ -22,6 +20,12 @@ export const errorHandler = (
 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
+
+  if (statusCode >= 500) {
+    console.error('💥 Server Error (500):', err);
+  } else {
+    console.warn(`⚠️ [${statusCode}] ${message}`);
+  }
 
   return sendError(res, message, statusCode);
 };

@@ -1,5 +1,10 @@
 import * as dotenv from 'dotenv';
-dotenv.config();
+import * as path from 'path';
+
+// Load from backend/.env first, fallback to root .env
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 export const ENV = {
   PORT: process.env.PORT || '5000',
