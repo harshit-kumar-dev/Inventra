@@ -8,6 +8,8 @@
     "frontend"
   ],
   "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,magenta\" \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "build": "npm run --workspace=database db:generate && npm run --workspace=backend build && npm run --workspace=frontend build",
     "db:generate": "npm run --workspace=database db:generate",
     "db:migrate": "npm run --workspace=database db:migrate",
     "db:push": "npm run --workspace=database db:push",
@@ -16,5 +18,8 @@
     "backend:dev": "npm run --workspace=backend dev",
     "backend:build": "npm run --workspace=backend build",
     "frontend:dev": "npm run --workspace=frontend dev"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }

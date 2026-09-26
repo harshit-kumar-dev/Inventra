@@ -29,3 +29,7 @@ Thumbs.db
 
 # Prisma
 /database/prisma/migrations/.env
+
+# Scratch & Temporary Test Files
+scratch/
+
