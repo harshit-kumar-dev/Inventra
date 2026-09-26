@@ -7,7 +7,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting deterministic StockSense database seed...');
+  console.log('🌱 Starting deterministic Inventra database seed...');
 
   // -------------------------------------------------------------
   // 1. CLEANUP EXISTING DATA (IDEMPOTENT RESET)
@@ -43,7 +43,7 @@ async function main() {
     data: {
       name: 'Sarah Jenkins',
       loginId: 'manager1',
-      email: 'manager@stocksense.com',
+      email: 'manager@inventra.com',
       passwordHash: defaultPasswordHash,
       role: Role.INVENTORY_MANAGER,
     },
@@ -53,7 +53,7 @@ async function main() {
     data: {
       name: 'Alex Rivera',
       loginId: 'warehouse1',
-      email: 'staff@stocksense.com',
+      email: 'staff@inventra.com',
       passwordHash: defaultPasswordHash,
       role: Role.WAREHOUSE_STAFF,
     },
@@ -690,8 +690,8 @@ async function main() {
       },
       {
         type: NotificationType.SYSTEM,
-        title: 'Welcome to StockSense IMS',
-        message: 'StockSense database initialized with live demo inventory state.',
+        title: 'Welcome to Inventra IMS',
+        message: 'Inventra database initialized with live demo inventory state.',
       },
     ],
   });

@@ -16,11 +16,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('stocksense_token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('inventra_token') || localStorage.getItem('stocksense_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const refreshProfile = useCallback(async () => {
-    const storedToken = localStorage.getItem('stocksense_token');
+    const storedToken = localStorage.getItem('inventra_token') || localStorage.getItem('stocksense_token');
     if (!storedToken) {
       setUser(null);
       setIsLoading(false);
@@ -32,12 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (res.data?.user) {
         setUser(res.data.user);
       } else {
+        localStorage.removeItem('inventra_token');
         localStorage.removeItem('stocksense_token');
         setUser(null);
         setToken(null);
       }
     } catch (error) {
       console.warn('Failed to fetch user session:', error);
+      localStorage.removeItem('inventra_token');
       localStorage.removeItem('stocksense_token');
       setUser(null);
       setToken(null);
@@ -51,12 +53,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [refreshProfile]);
 
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('stocksense_token', newToken);
+    localStorage.setItem('inventra_token', newToken);
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
+    localStorage.removeItem('inventra_token');
     localStorage.removeItem('stocksense_token');
     setToken(null);
     setUser(null);

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/logo.jpg" alt="StockSense Logo" width="110" style="border-radius: 22px; box-shadow: 0 8px 24px rgba(79, 91, 42, 0.25);" />
+  <img src="docs/assets/logo.jpg" alt="Inventra Logo" width="110" style="border-radius: 22px; box-shadow: 0 8px 24px rgba(79, 91, 42, 0.25);" />
 </p>
 
-<h1 align="center">StockSense</h1>
+<h1 align="center">Inventra</h1>
 
 <p align="center">
   <strong>Smart Inventory. Complete Control.</strong><br />
@@ -52,16 +52,16 @@
 - [Testing & Verification](#-testing--verification)
 - [UI / Design System](#-ui--design-system)
 - [Future Improvements](#-future-improvements)
-- [Why StockSense?](#-why-stocksense)
+- [Why Inventra?](#-why-inventra)
 - [License](#-license)
 
 ---
 
 ## 🌟 Overview
 
-**StockSense** is an enterprise-grade inventory and warehouse management system designed to eliminate inventory blindspots, reconcile physical stock with system records, and prevent accidental stock deficits.
+**Inventra** is an enterprise-grade inventory and warehouse management system designed to eliminate inventory blindspots, reconcile physical stock with system records, and prevent accidental stock deficits.
 
-Unlike rudimentary inventory trackers that treat stock as a simple counter on a product table, StockSense treats stock as **location-aware physical state** governed by a centralized **Stock Engine** and an **immutable, append-only Stock Ledger**. Every inbound receipt, outbound customer shipment, inter-warehouse transfer, and physical count adjustment is executed within atomic database transactions to guarantee mathematical consistency across all locations.
+Unlike rudimentary inventory trackers that treat stock as a simple counter on a product table, Inventra treats stock as **location-aware physical state** governed by a centralized **Stock Engine** and an **immutable, append-only Stock Ledger**. Every inbound receipt, outbound customer shipment, inter-warehouse transfer, and physical count adjustment is executed within atomic database transactions to guarantee mathematical consistency across all locations.
 
 ---
 
@@ -81,7 +81,7 @@ Modern multi-facility supply chains face recurring operational risks that lead t
 
 ## 💡 Our Solution
 
-StockSense addresses these challenges through a unified, ERP-inspired platform:
+Inventra addresses these challenges through a unified, ERP-inspired platform:
 
 1. **Centralized Multi-Warehouse Management**: Full topology modeling from physical warehouses down to individual storage bins and staging docks.
 2. **Location-Level Inventory Quantities**: Authoritative stock quantities stored strictly per `(product, location)` pair.
@@ -223,7 +223,7 @@ HTTP Request
 
 ## ⚡ Stock Management Engine
 
-The core invariant of StockSense is that **stock is strictly physical and location-bound**.
+The core invariant of Inventra is that **stock is strictly physical and location-bound**.
 
 $$\text{Product} + \text{Location} \implies \text{StockQuantity}$$
 
@@ -275,13 +275,13 @@ $$\text{Free to Use} = \max(0, \text{On Hand} - \text{Reserved})$$
 
 ## 🔒 Authentication & Password Recovery
 
-StockSense implements secure credential management and password recovery:
+Inventra implements secure credential management and password recovery:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User
-    participant Web as StockSense Web
+    participant Web as Inventra Web
     participant API as Backend API
     participant DB as PostgreSQL
     participant SMTP as Brevo Relay
@@ -313,7 +313,7 @@ sequenceDiagram
 
 ## 🗄️ Database Architecture
 
-StockSense utilizes PostgreSQL managed with Prisma ORM.
+Inventra utilizes PostgreSQL managed with Prisma ORM.
 
 ```mermaid
 erDiagram
@@ -401,7 +401,7 @@ Inventra/
 │   │   ├── layouts/             # AppLayout & AuthLayout
 │   │   ├── pages/               # Page views (Dashboard, Stock, Operations, Settings)
 │   │   ├── services/            # Axios API clients (stockApi, operationApi, etc.)
-│   │   ├── index.css            # StockSense design system tokens & styles
+│   │   ├── index.css            # Inventra design system tokens & styles
 │   │   └── App.tsx              # React Router & RBAC Route Guards
 │   └── package.json
 │
@@ -417,7 +417,7 @@ Inventra/
 
 ## 🛠️ Technology Stack
 
-| Layer | Technology | Version | Purpose in StockSense |
+| Layer | Technology | Version | Purpose in Inventra |
 | :--- | :--- | :--- | :--- |
 | **Frontend Framework** | React | `^18.3.1` | Component-driven user interface |
 | **Language** | TypeScript | `^5.4.5` | End-to-end type safety across client and server |
@@ -482,8 +482,8 @@ BREVO_SMTP_HOST="smtp-relay.brevo.com"
 BREVO_SMTP_PORT=587
 BREVO_SMTP_USER="your-brevo-smtp-login-email"
 BREVO_SMTP_PASSWORD="your-brevo-smtp-master-key"
-BREVO_SENDER_EMAIL="verified-sender@stocksense.app"
-BREVO_SENDER_NAME="StockSense"
+BREVO_SENDER_EMAIL="verified-sender@inventra.app"
+BREVO_SENDER_NAME="Inventra"
 ```
 
 ### Frontend `.env` (`frontend/.env`)
@@ -525,8 +525,8 @@ The database seed provides predefined accounts covering all three enterprise rol
 | Role | Email / Login ID | Password | Access Level & Permissions |
 | :--- | :--- | :--- | :--- |
 | **System Administrator** | `admin` *(or `harshit81k@gmail.com`)* | `Password@123` | **Full Access**: Settings, Warehouses, Locations, Products, Operations, Stock Adjustments, User Management. |
-| **Inventory Manager** | `manager@stocksense.com` *(or `manager1`)* | `Password@123` | **Operations & Master Access**: Receipts, Deliveries, Transfers, Adjustments, Stock Ledger, Products, Warehouses, Locations. |
-| **Warehouse Staff** | `staff@stocksense.com` *(or `warehouse1`)* | `Password@123` | **Floor Operations**: Transfers, Picking (Deliveries), Physical Counts, Draft Receiving. Settings routes blocked. |
+| **Inventory Manager** | `manager@inventra.com` *(or `manager1`)* | `Password@123` | **Operations & Master Access**: Receipts, Deliveries, Transfers, Adjustments, Stock Ledger, Products, Warehouses, Locations. |
+| **Warehouse Staff** | `staff@inventra.com` *(or `warehouse1`)* | `Password@123` | **Floor Operations**: Transfers, Picking (Deliveries), Physical Counts, Draft Receiving. Settings routes blocked. |
 
 *Tip: The login page includes 1-click **Quick Fill Demo Credentials** buttons for instant evaluation.*
 
@@ -581,7 +581,7 @@ The database seed provides predefined accounts covering all three enterprise rol
 
 ## 🎯 Judge Demo Flow
 
-*A structured 4-minute walkthrough designed for evaluating StockSense:*
+*A structured 4-minute walkthrough designed for evaluating Inventra:*
 
 1. **Sign In**: Open `http://localhost:5173/login`, click **Fill Admin**, and click **Sign In**.
 2. **Dashboard Overview**: Inspect live KPIs: Total Products, Low Stock alerts, Out of Stock warnings, and Recent Movements ledger feed.
@@ -605,7 +605,7 @@ The database seed provides predefined accounts covering all three enterprise rol
    - Verify that your Receipt ($+20$), Delivery ($-10$), and Adjustment ($+5$) records appear with exact timestamps and signed deltas.
 8. **Settings & Role-Based Access Control (RBAC)**:
    - Go to **Settings Hub** (`/settings`) $\to$ **Warehouse** & **Locations**.
-   - Sign out and log in as **Warehouse Staff** (`staff@stocksense.com`).
+   - Sign out and log in as **Warehouse Staff** (`staff@inventra.com`).
    - Notice Settings is hidden. Attempting direct navigation to `/settings` redirects safely to `/dashboard`, and backend APIs return `403 Forbidden`.
 
 ---
@@ -633,7 +633,7 @@ The database seed provides predefined accounts covering all three enterprise rol
 
 ## 🎨 UI / Design System
 
-StockSense utilizes an enterprise palette designed for readability and focus:
+Inventra utilizes an enterprise palette designed for readability and focus:
 
 | Token | Hex Value | Application |
 | :--- | :---: | :--- |
@@ -655,7 +655,7 @@ StockSense utilizes an enterprise palette designed for readability and focus:
 
 ---
 
-## 🏆 Why StockSense?
+## 🏆 Why Inventra?
 
 - **Real-World Inventory Mechanics**: Implements true location-based inventory rather than oversimplified product counters.
 - **Guaranteed Transaction Safety**: Atomically binds stock mutations to an immutable audit ledger.
@@ -675,5 +675,5 @@ Distributed under the **MIT License**. See [`LICENSE`](file:///c:/Users/Harshit%
 </p>
 
 <p align="center">
-  <strong>StockSense</strong> — <em>Smart Inventory. Complete Control.</em>
+  <strong>Inventra</strong> — <em>Smart Inventory. Complete Control.</em>
 </p>

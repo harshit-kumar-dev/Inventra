@@ -51,7 +51,7 @@ export const LoginPage: React.FC = () => {
   return (
     <div>
       <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-        Sign In to StockSense
+        Sign In to Inventra
       </h2>
       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
         Enter your credentials to access live warehouse inventory.
@@ -105,7 +105,7 @@ export const LoginPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => fillCredentials('manager@stocksense.com')}
+            onClick={() => fillCredentials('manager1')}
             className="btn"
             title="Fill Manager Credentials"
             style={{
@@ -125,7 +125,7 @@ export const LoginPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => fillCredentials('staff@stocksense.com')}
+            onClick={() => fillCredentials('warehouse1')}
             className="btn"
             title="Fill Staff Credentials"
             style={{
@@ -170,7 +170,7 @@ export const LoginPage: React.FC = () => {
               type="text"
               required
               className="form-input"
-              placeholder="e.g. admin@stocksense.app or Login ID"
+              placeholder="e.g. admin@inventra.app or Login ID"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               style={{ paddingLeft: '38px' }}

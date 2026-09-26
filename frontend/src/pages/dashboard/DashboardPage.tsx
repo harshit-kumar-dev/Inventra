@@ -89,7 +89,7 @@ export const DashboardPage: React.FC = () => {
               }}
             />
             <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-              StockSense Control Hub
+              Inventra Control Hub
             </h1>
             {user?.role && (
               <span

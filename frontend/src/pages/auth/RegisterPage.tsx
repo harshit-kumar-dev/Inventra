@@ -45,7 +45,7 @@ export const RegisterPage: React.FC = () => {
 
       if (res.data?.token && res.data?.user) {
         login(res.data.token, res.data.user);
-        success('Admin account created successfully! Welcome to StockSense.');
+        success('Admin account created successfully! Welcome to Inventra.');
         navigate('/dashboard');
       }
     } catch (err: any) {

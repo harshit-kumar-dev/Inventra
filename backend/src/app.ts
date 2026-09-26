@@ -28,7 +28,7 @@ app.get('/api/health', async (_req: Request, res: Response) => {
 
   res.status(dbStatus === 'connected' ? 200 : 500).json({
     status: 'ok',
-    service: 'StockSense API',
+    service: 'Inventra API',
     timestamp: new Date().toISOString(),
     database: dbStatus,
   });

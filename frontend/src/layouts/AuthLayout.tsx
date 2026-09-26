@@ -38,7 +38,7 @@ export const AuthLayout: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px' }}>
             <img
               src="/logo.jpg"
-              alt="StockSense Logo"
+              alt="Inventra Logo"
               style={{
                 width: '54px',
                 height: '54px',
@@ -60,7 +60,7 @@ export const AuthLayout: React.FC = () => {
                   lineHeight: 1.15,
                 }}
               >
-                StockSense
+                Inventra
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.03em', marginTop: '2px' }}>
                 SMART WAREHOUSE & INVENTORY IMS
@@ -160,7 +160,7 @@ export const AuthLayout: React.FC = () => {
           >
             <img
               src="/login-hero.jpg"
-              alt="StockSense Smart Warehouse Operations"
+              alt="Inventra Smart Warehouse Operations"
               style={{
                 width: '100%',
                 maxHeight: '340px',

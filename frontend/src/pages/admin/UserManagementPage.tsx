@@ -731,7 +731,7 @@ export const UserManagementPage: React.FC = () => {
               type="email"
               required
               className="form-input"
-              placeholder="e.g. jdoe@stocksense.internal"
+              placeholder="e.g. jdoe@inventra.internal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

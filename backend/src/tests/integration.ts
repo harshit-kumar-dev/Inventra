@@ -13,7 +13,7 @@ import { prisma, Role, DocumentStatus, NotificationType } from '../config/db';
 
 async function runTestSuite() {
   console.log('🧪 ========================================================');
-  console.log('🚀 RUNNING STOCKSENSE BACKEND INTEGRATION TESTS (PHASES 2-9)');
+  console.log('🚀 RUNNING INVENTRA BACKEND INTEGRATION TESTS (PHASES 2-9)');
   console.log('🧪 ========================================================\n');
 
   try {

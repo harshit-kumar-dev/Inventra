@@ -67,7 +67,7 @@ export const Sidebar: React.FC = () => {
       >
         <img
           src="/logo.jpg"
-          alt="StockSense Logo"
+          alt="Inventra Logo"
           style={{
             width: '42px',
             height: '42px',
@@ -87,7 +87,7 @@ export const Sidebar: React.FC = () => {
               color: '#FFFFFF',
             }}
           >
-            StockSense
+            Inventra
           </div>
           <div style={{ fontSize: '11px', color: '#D8C9A8', fontWeight: 600, letterSpacing: '0.04em' }}>
             SMART WAREHOUSE IMS

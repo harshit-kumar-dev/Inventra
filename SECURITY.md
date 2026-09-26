@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-StockSense is actively maintained. Security updates and patches are applied to the latest release on `main`.
+Inventra is actively maintained. Security updates and patches are applied to the latest release on `main`.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,10 +11,10 @@ StockSense is actively maintained. Security updates and patches are applied to t
 
 ## Reporting a Vulnerability
 
-The StockSense development team takes security and data integrity very seriously. If you discover a vulnerability or security risk, please follow these guidelines:
+The Inventra development team takes security and data integrity very seriously. If you discover a vulnerability or security risk, please follow these guidelines:
 
 1. **Do not open a public issue.**
-2. Report the vulnerability privately by emailing our security team at [security@stocksense.app](mailto:security@stocksense.app).
+2. Report the vulnerability privately by emailing our security team at [security@inventra.app](mailto:security@inventra.app).
 3. Include detailed steps to reproduce the issue, proof of concept (PoC), and the impacted components or endpoints.
 
 ### What to Expect
@@ -23,7 +23,7 @@ The StockSense development team takes security and data integrity very seriously
 - **Triage & Assessment**: Within 48 hours with a severity rating (CVSS).
 - **Remediation**: A hotfix or patch will be developed, reviewed, and released with an advisory.
 
-## Security Practices in StockSense
+## Security Practices in Inventra
 
 - **Strict Role-Based Access Control (RBAC)** enforced at both Frontend and Backend API levels.
 - **Cryptographic Security**: Passwords hashed with Bcrypt (10 salt rounds), JWTs signed with HMAC-SHA256.

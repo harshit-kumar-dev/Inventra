@@ -118,7 +118,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <LoadingState text="Loading StockSense..." />
+        <LoadingState text="Loading Inventra..." />
       </div>
     );
   }

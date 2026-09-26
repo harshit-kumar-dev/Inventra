@@ -1,6 +1,6 @@
-# StockSense Database Package (`@stocksense/database`)
+# Inventra Database Package (`@stocksense/database`)
 
-The single source of truth for the database schema, Prisma migrations, and deterministic seed data for **StockSense — Smart Inventory Management System**.
+The single source of truth for the database schema, Prisma migrations, and deterministic seed data for **Inventra — Smart Inventory Management System**.
 
 ---
 

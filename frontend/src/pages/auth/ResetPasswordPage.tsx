@@ -67,7 +67,7 @@ export const ResetPasswordPage: React.FC = () => {
         Set New Password
       </h2>
       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-        Create a new strong password for your StockSense account.
+        Create a new strong password for your Inventra account.
       </p>
 
       {errorMsg && (

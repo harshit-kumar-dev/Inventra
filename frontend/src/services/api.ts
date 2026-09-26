@@ -16,7 +16,7 @@ export async function request<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ success: boolean; message: string; data?: T; meta?: any }> {
-  const token = localStorage.getItem('stocksense_token');
+  const token = localStorage.getItem('inventra_token') || localStorage.getItem('stocksense_token');
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
