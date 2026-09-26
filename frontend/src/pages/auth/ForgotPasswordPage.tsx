@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ArrowLeft, Send } from 'lucide-react';
+import { Mail, ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../../services/authApi';
 import { useToast } from '../../context/ToastContext';
 
@@ -17,9 +17,9 @@ export const ForgotPasswordPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await authApi.forgotPassword(email);
+      await authApi.forgotPassword(email.trim());
       setIsSubmitted(true);
-      success('6-digit reset code has been sent via Brevo email.');
+      success('6-digit reset code dispatched to your registered email inbox.');
     } catch (err: any) {
       error(err?.message || 'Failed to send reset email. Please try again.');
     } finally {
@@ -39,6 +39,7 @@ export const ForgotPasswordPage: React.FC = () => {
           fontSize: '13px',
           textDecoration: 'none',
           marginBottom: '16px',
+          fontWeight: 600,
         }}
       >
         <ArrowLeft size={14} /> Back to Sign In
@@ -54,25 +55,42 @@ export const ForgotPasswordPage: React.FC = () => {
       {isSubmitted ? (
         <div
           style={{
-            padding: '20px',
+            padding: '24px 20px',
             borderRadius: 'var(--radius-md)',
-            background: 'rgba(16, 185, 129, 0.1)',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
+            background: '#F5EFE3',
+            border: '1px solid #D8C9A8',
             textAlign: 'center',
           }}
         >
-          <p style={{ fontSize: '14px', color: 'var(--emerald-400)', fontWeight: 600, marginBottom: '8px' }}>
-            Check Your Email
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(79, 91, 42, 0.12)',
+              color: 'var(--color-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 14px auto',
+            }}
+          >
+            <CheckCircle2 size={26} />
+          </div>
+
+          <p style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '6px' }}>
+            Check Your Email Inbox
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '18px' }}>
-            A 6-digit verification OTP was dispatched to <strong>{email}</strong> via Brevo SMTP.
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.5 }}>
+            A 6-digit verification code has been dispatched to <strong>{email}</strong>. Please check your inbox (or Spam/Promotions folder) and enter the code on the next screen.
           </p>
+
           <button
             onClick={() => navigate('/verify-otp', { state: { email } })}
             className="btn btn-primary"
-            style={{ width: '100%' }}
+            style={{ width: '100%', padding: '11px', fontSize: '14px', fontWeight: 700 }}
           >
-            Proceed to Enter OTP
+            Enter 6-Digit OTP Code
           </button>
         </div>
       ) : (
@@ -84,7 +102,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 type="email"
                 required
                 className="form-input"
-                placeholder="manager@stocksense.com"
+                placeholder="e.g. user@company.internal"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ paddingLeft: '38px' }}
@@ -100,10 +118,12 @@ export const ForgotPasswordPage: React.FC = () => {
             disabled={isLoading}
           >
             <Send size={16} />
-            {isLoading ? 'Sending OTP...' : 'Send Reset Code'}
+            {isLoading ? 'Sending Code...' : 'Send Verification Code'}
           </button>
         </form>
       )}
     </div>
   );
 };
+
+export default ForgotPasswordPage;

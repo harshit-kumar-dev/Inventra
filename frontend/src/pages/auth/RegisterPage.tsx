@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, User, Mail, Key, Shield } from 'lucide-react';
+import { UserPlus, User, Mail, Key, Shield, ArrowLeft } from 'lucide-react';
 import { authApi } from '../../services/authApi';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -10,7 +10,8 @@ export const RegisterPage: React.FC = () => {
   const [loginId, setLoginId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('WAREHOUSE_STAFF');
+  // Public registration is strictly for System Administrator
+  const role = 'ADMIN';
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -22,8 +23,8 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (loginId.length < 6 || loginId.length > 12) {
-      setErrorMsg('Login ID must be between 6 and 12 characters.');
+    if (loginId.length < 4 || loginId.length > 16) {
+      setErrorMsg('Login ID must be between 4 and 16 characters.');
       return;
     }
 
@@ -44,7 +45,7 @@ export const RegisterPage: React.FC = () => {
 
       if (res.data?.token && res.data?.user) {
         login(res.data.token, res.data.user);
-        success('Account created successfully! Welcome to StockSense.');
+        success('Admin account created successfully! Welcome to StockSense.');
         navigate('/dashboard');
       }
     } catch (err: any) {
@@ -58,11 +59,44 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div>
-      <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-        Create an Account
-      </h2>
+      <div style={{ marginBottom: '14px' }}>
+        <Link
+          to="/login"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            fontSize: '12.5px',
+            color: '#4F5B2A',
+            textDecoration: 'none',
+            fontWeight: 600,
+          }}
+        >
+          <ArrowLeft size={14} /> Back to Sign In
+        </Link>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+          Administrator Sign Up
+        </h2>
+        <span
+          style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: '4px',
+            backgroundColor: '#F5EFE3',
+            color: '#4F5B2A',
+            border: '1px solid #D8C9A8',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          ADMIN ONLY
+        </span>
+      </div>
       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-        Register new warehouse or inventory staff into StockSense.
+        Register a new System Administrator account with full enterprise access.
       </p>
 
       {errorMsg && (
@@ -70,11 +104,12 @@ export const RegisterPage: React.FC = () => {
           style={{
             padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: 'var(--rose-400)',
+            background: 'var(--status-canceled-bg)',
+            border: '1px solid var(--status-canceled-border)',
+            color: 'var(--status-canceled-text)',
             fontSize: '13px',
             marginBottom: '16px',
+            fontWeight: 500,
           }}
         >
           {errorMsg}
@@ -89,7 +124,7 @@ export const RegisterPage: React.FC = () => {
               type="text"
               required
               className="form-input"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. Alex Morgan"
               value={name}
               onChange={(e) => setName(e.target.value)}
               style={{ paddingLeft: '38px' }}
@@ -99,15 +134,15 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Login ID (6–12 alphanumeric characters)</label>
+          <label className="form-label">Login ID (alphanumeric username)</label>
           <div style={{ position: 'relative' }}>
             <input
               type="text"
               required
-              minLength={6}
-              maxLength={12}
+              minLength={4}
+              maxLength={16}
               className="form-input"
-              placeholder="e.g. jdoe_staff"
+              placeholder="e.g. admin_hq"
               value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
               style={{ paddingLeft: '38px' }}
@@ -117,13 +152,13 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Work Email</label>
+          <label className="form-label">Administrator Work Email</label>
           <div style={{ position: 'relative' }}>
             <input
               type="email"
               required
               className="form-input"
-              placeholder="e.g. jdoe@company.com"
+              placeholder="e.g. admin@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{ paddingLeft: '38px' }}
@@ -132,29 +167,39 @@ export const RegisterPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Locked Role Badge */}
         <div className="form-group">
-          <label className="form-label">System Role</label>
-          <div style={{ position: 'relative' }}>
-            <select
-              className="form-select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              style={{ paddingLeft: '38px' }}
-            >
-              <option value="WAREHOUSE_STAFF">Warehouse Staff (Transfers, Picking, Shelving)</option>
-              <option value="INVENTORY_MANAGER">Inventory Manager (Full Operations & Master Data)</option>
-              <option value="ADMIN">System Administrator</option>
-            </select>
-            <Shield size={16} style={{ position: 'absolute', left: '12px', top: '13px', color: 'var(--text-muted)' }} />
+          <label className="form-label">Assigned Role</label>
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: '8px',
+              backgroundColor: '#F5EFE3',
+              border: '1px solid #D8C9A8',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <Shield size={18} color="#4F5B2A" />
+            <div>
+              <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#4F5B2A' }}>
+                System Administrator (ADMIN)
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                Staff & Manager accounts are provisioned internally from the User Management console.
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="form-group">
-          <label className="form-label">Password (min 8 chars, 1 uppercase, 1 special)</label>
+          <label className="form-label">Password (min 8 chars)</label>
           <div style={{ position: 'relative' }}>
             <input
               type="password"
               required
+              minLength={8}
               className="form-input"
               placeholder="••••••••••••"
               value={password}
@@ -172,16 +217,17 @@ export const RegisterPage: React.FC = () => {
           disabled={isLoading}
         >
           <UserPlus size={16} />
-          {isLoading ? 'Creating Account...' : 'Sign Up'}
+          {isLoading ? 'Creating Administrator Account...' : 'Sign Up as Admin'}
         </button>
       </form>
 
       <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-secondary)' }}>
         Already have an account?{' '}
-        <Link to="/login" style={{ color: 'var(--primary-400)', textDecoration: 'none', fontWeight: 600 }}>
+        <Link to="/login" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 700 }}>
           Sign In
         </Link>
       </div>
     </div>
   );
 };
+export default RegisterPage;

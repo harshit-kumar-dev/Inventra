@@ -57,6 +57,7 @@ export const ResetPasswordPage: React.FC = () => {
           fontSize: '13px',
           textDecoration: 'none',
           marginBottom: '16px',
+          fontWeight: 600,
         }}
       >
         <ArrowLeft size={14} /> Back to Sign In
@@ -74,11 +75,12 @@ export const ResetPasswordPage: React.FC = () => {
           style={{
             padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: 'var(--rose-400)',
+            background: 'var(--status-canceled-bg)',
+            border: '1px solid var(--status-canceled-border)',
+            color: 'var(--status-canceled-text)',
             fontSize: '13px',
             marginBottom: '16px',
+            fontWeight: 500,
           }}
         >
           {errorMsg}
@@ -87,7 +89,7 @@ export const ResetPasswordPage: React.FC = () => {
 
       <form onSubmit={handleReset}>
         <div className="form-group">
-          <label className="form-label">New Password (min 8 chars, 1 uppercase, 1 special)</label>
+          <label className="form-label">New Password (min 8 chars)</label>
           <div style={{ position: 'relative' }}>
             <input
               type="password"
@@ -131,3 +133,4 @@ export const ResetPasswordPage: React.FC = () => {
     </div>
   );
 };
+export default ResetPasswordPage;

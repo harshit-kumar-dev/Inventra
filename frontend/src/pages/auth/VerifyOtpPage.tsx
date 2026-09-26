@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../../services/authApi';
 import { useToast } from '../../context/ToastContext';
 
@@ -51,6 +51,7 @@ export const VerifyOtpPage: React.FC = () => {
           fontSize: '13px',
           textDecoration: 'none',
           marginBottom: '16px',
+          fontWeight: 600,
         }}
       >
         <ArrowLeft size={14} /> Back
@@ -68,11 +69,12 @@ export const VerifyOtpPage: React.FC = () => {
           style={{
             padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: 'var(--rose-400)',
+            background: 'var(--status-canceled-bg)',
+            border: '1px solid var(--status-canceled-border)',
+            color: 'var(--status-canceled-text)',
             fontSize: '13px',
             marginBottom: '16px',
+            fontWeight: 500,
           }}
         >
           {errorMsg}
@@ -108,6 +110,7 @@ export const VerifyOtpPage: React.FC = () => {
                 fontWeight: 700,
                 textAlign: 'center',
                 fontFamily: 'var(--font-mono)',
+                color: 'var(--color-primary)',
               }}
             />
           </div>
@@ -126,3 +129,4 @@ export const VerifyOtpPage: React.FC = () => {
     </div>
   );
 };
+export default VerifyOtpPage;
