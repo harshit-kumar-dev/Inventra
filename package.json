@@ -1,0 +1,20 @@
+{
+  "name": "stocksense-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "database",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "db:generate": "npm run --workspace=database db:generate",
+    "db:migrate": "npm run --workspace=database db:migrate",
+    "db:push": "npm run --workspace=database db:push",
+    "db:seed": "npm run --workspace=database db:seed",
+    "db:studio": "npm run --workspace=database db:studio",
+    "backend:dev": "npm run --workspace=backend dev",
+    "backend:build": "npm run --workspace=backend build",
+    "frontend:dev": "npm run --workspace=frontend dev"
+  }
+}
