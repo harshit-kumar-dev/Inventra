@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Package,
   Search,
   Plus,
-  Filter,
   Eye,
   CheckCircle,
   AlertTriangle,
@@ -139,7 +137,7 @@ export const ProductListPage: React.FC = () => {
 
       {/* Filter Bar */}
       <div
-        className="glass-card"
+        className="card"
         style={{
           padding: '16px 20px',
           marginBottom: '20px',
@@ -216,26 +214,26 @@ export const ProductListPage: React.FC = () => {
             <tbody>
               {products.map((p) => {
                 let badgeStyle = {
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: 'var(--emerald-400)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  background: 'var(--status-done-bg)',
+                  color: 'var(--status-done-text)',
+                  border: '1px solid var(--status-done-border)',
                 };
                 let statusLabel = 'In Stock';
                 let StatusIcon = CheckCircle;
 
                 if (p.stockStatus === 'OUT_OF_STOCK') {
                   badgeStyle = {
-                    background: 'rgba(239, 68, 68, 0.15)',
-                    color: 'var(--rose-400)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    background: 'var(--status-canceled-bg)',
+                    color: 'var(--status-canceled-text)',
+                    border: '1px solid var(--status-canceled-border)',
                   };
                   statusLabel = 'Out of Stock';
                   StatusIcon = XCircle;
                 } else if (p.stockStatus === 'LOW_STOCK') {
                   badgeStyle = {
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    color: 'var(--amber-400)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    background: 'var(--status-waiting-bg)',
+                    color: 'var(--status-waiting-text)',
+                    border: '1px solid var(--status-waiting-border)',
                   };
                   statusLabel = 'Low Stock';
                   StatusIcon = AlertTriangle;
@@ -255,7 +253,7 @@ export const ProductListPage: React.FC = () => {
                       </span>
                     </td>
                     <td>
-                      <span style={{ fontWeight: 500 }}>₹{p.perUnitCost.toLocaleString()}</span>
+                      <span style={{ fontWeight: 600 }}>₹{p.perUnitCost.toLocaleString()}</span>
                     </td>
                     <td>
                       <span style={{ color: 'var(--text-muted)' }}>
@@ -263,7 +261,7 @@ export const ProductListPage: React.FC = () => {
                       </span>
                     </td>
                     <td>
-                      <span style={{ fontWeight: 700, fontSize: '15px', color: p.totalStock <= 0 ? 'var(--rose-400)' : 'var(--text-primary)' }}>
+                      <span style={{ fontWeight: 700, fontSize: '15px', color: p.totalStock <= 0 ? 'var(--status-canceled-text)' : 'var(--color-primary)' }}>
                         {p.totalStock} {p.uom?.symbol}
                       </span>
                     </td>
@@ -298,6 +296,7 @@ export const ProductListPage: React.FC = () => {
               borderTop: '1px solid var(--border-subtle)',
               fontSize: '13px',
               color: 'var(--text-muted)',
+              background: '#FAF8F5',
             }}
           >
             <span>
@@ -434,3 +433,4 @@ export const ProductListPage: React.FC = () => {
     </div>
   );
 };
+export default ProductListPage;

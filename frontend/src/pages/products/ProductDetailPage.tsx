@@ -58,47 +58,60 @@ export const ProductDetailPage: React.FC = () => {
   const isOutOfStock = product.stockStatus === 'OUT_OF_STOCK';
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
             onClick={() => navigate('/products')}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition"
+            className="btn btn-secondary"
+            style={{ padding: '8px' }}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white tracking-tight">{product.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                {product.name}
+              </h1>
               <StatusBadge status={product.stockStatus} />
               {!product.active && <StatusBadge status="INACTIVE" />}
             </div>
-            <p className="text-sm text-slate-400 mt-0.5">SKU: <span className="font-mono text-cyan-400 font-semibold">{product.sku}</span></p>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              SKU: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-primary)', fontWeight: 700 }}>{product.sku}</span>
+            </p>
           </div>
         </div>
 
         <Link
           to={`/products?edit=${product.id}`}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg transition text-sm font-medium"
+          className="btn btn-secondary"
+          style={{ fontSize: '13px' }}
         >
-          <Edit3 className="w-4 h-4" /> Edit Details
+          <Edit3 size={15} /> Edit Details
         </Link>
       </div>
 
       {/* Stock Alerts if low / out of stock */}
       {(isLowStock || isOutOfStock) && (
-        <div className={`p-4 rounded-xl border flex items-center gap-3 ${
-          isOutOfStock 
-            ? 'bg-rose-500/10 border-rose-500/30 text-rose-300' 
-            : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-        }`}>
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        <div
+          style={{
+            padding: '16px 20px',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: isOutOfStock ? 'var(--status-canceled-bg)' : 'var(--status-waiting-bg)',
+            border: `1px solid ${isOutOfStock ? 'var(--status-canceled-border)' : 'var(--status-waiting-border)'}`,
+            color: isOutOfStock ? 'var(--status-canceled-text)' : 'var(--status-waiting-text)',
+          }}
+        >
+          <AlertTriangle size={20} style={{ flexShrink: 0 }} />
           <div>
-            <div className="font-semibold text-sm">
+            <div style={{ fontWeight: 700, fontSize: '14px' }}>
               {isOutOfStock ? 'Stock Alert: Out of Stock' : 'Stock Alert: Low Inventory Level'}
             </div>
-            <div className="text-xs opacity-90">
+            <div style={{ fontSize: '12.5px', opacity: 0.9, marginTop: '2px' }}>
               Current total stock is {product.totalStock} {product.uom.symbol}. The defined reorder threshold is {product.reorderLevel} {product.uom.symbol}.
             </div>
           </div>
@@ -106,83 +119,107 @@ export const ProductDetailPage: React.FC = () => {
       )}
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total On-Hand</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-white">{product.totalStock}</span>
-            <span className="text-sm text-slate-400 font-medium">{product.uom.symbol}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+        <div className="card" style={{ padding: '18px 20px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Total On-Hand
+          </span>
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-primary)' }}>{product.totalStock}</span>
+            <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>{product.uom.symbol}</span>
           </div>
-          <span className="text-xs text-slate-500 mt-1 block">Live aggregated balance</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Live aggregated balance</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Reorder Level</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-200">{product.reorderLevel}</span>
-            <span className="text-sm text-slate-400 font-medium">{product.uom.symbol}</span>
+        <div className="card" style={{ padding: '18px 20px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Reorder Level
+          </span>
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-accent)' }}>{product.reorderLevel}</span>
+            <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}>{product.uom.symbol}</span>
           </div>
-          <span className="text-xs text-slate-500 mt-1 block">Min inventory warning trigger</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Min safety threshold</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Unit Cost</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-emerald-400">${product.perUnitCost.toFixed(2)}</span>
-            <span className="text-xs text-slate-400">/ {product.uom.symbol}</span>
+        <div className="card" style={{ padding: '18px 20px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Unit Cost
+          </span>
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-primary)' }}>₹{product.perUnitCost.toFixed(2)}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>/ {product.uom.symbol}</span>
           </div>
-          <span className="text-xs text-slate-500 mt-1 block">Standard inventory valuation</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Standard valuation</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Category</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold text-cyan-400 truncate">{product.category.name}</span>
+        <div className="card" style={{ padding: '18px 20px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Category
+          </span>
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+            <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>{product.category.name}</span>
           </div>
-          <span className="text-xs text-slate-500 mt-1 block">UoM: {product.uom.name} ({product.uom.symbol})</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+            UoM: {product.uom.name} ({product.uom.symbol})
+          </span>
         </div>
       </div>
 
       {/* Location Stock Breakdown */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-base font-bold text-white">Stock Distribution by Location</h2>
+      <div className="card" style={{ overflow: 'hidden' }}>
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#FAF8F5',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MapPin size={18} color="var(--color-primary)" />
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Stock Distribution by Location
+            </h2>
           </div>
-          <span className="text-xs text-slate-400">{stockLocations.length} locations holding stock</span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{stockLocations.length} locations holding stock</span>
         </div>
 
         {stockLocations.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-sm">
-            <Box className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+          <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+            <Box size={36} color="var(--border-strong)" style={{ margin: '0 auto 8px auto' }} />
             No physical stock found at any active warehouse location.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
+          <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+            <table className="custom-table">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="px-6 py-3">Warehouse</th>
-                  <th className="px-6 py-3">Location Name</th>
-                  <th className="px-6 py-3">Location Code</th>
-                  <th className="px-6 py-3 text-right">Available Qty</th>
-                  <th className="px-6 py-3 text-right">Valuation</th>
+                <tr>
+                  <th>Warehouse</th>
+                  <th>Location Name</th>
+                  <th>Location Code</th>
+                  <th style={{ textAlign: 'right' }}>Available Qty</th>
+                  <th style={{ textAlign: 'right' }}>Valuation</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody>
                 {stockLocations.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-800/40 transition">
-                    <td className="px-6 py-3.5 font-medium text-white">
-                      {item.warehouseName} <span className="text-xs text-slate-500">({item.warehouseCode})</span>
+                  <tr key={idx}>
+                    <td>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{item.warehouseName}</span>{' '}
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>({item.warehouseCode})</span>
                     </td>
-                    <td className="px-6 py-3.5 text-slate-300">{item.locationName}</td>
-                    <td className="px-6 py-3.5 font-mono text-cyan-400 text-xs">{item.locationCode}</td>
-                    <td className="px-6 py-3.5 text-right font-bold text-white">
-                      {item.quantity} <span className="text-xs text-slate-400 font-normal">{product.uom.symbol}</span>
+                    <td>{item.locationName}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-primary)' }}>
+                      {item.locationCode}
                     </td>
-                    <td className="px-6 py-3.5 text-right font-mono text-emerald-400 text-xs font-semibold">
-                      ${(item.quantity * product.perUnitCost).toFixed(2)}
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>
+                      {item.quantity} <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 400 }}>{product.uom.symbol}</span>
+                    </td>
+                    <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      ₹{(item.quantity * product.perUnitCost).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -193,51 +230,69 @@ export const ProductDetailPage: React.FC = () => {
       </div>
 
       {/* Recent Ledger Audit Trail */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <History className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-base font-bold text-white">Recent Stock Movements (Audit Ledger)</h2>
+      <div className="card" style={{ overflow: 'hidden' }}>
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#FAF8F5',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <History size={18} color="var(--color-primary)" />
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Recent Stock Movements (Audit Ledger)
+            </h2>
           </div>
-          <Link to={`/move-history?productId=${product.id}`} className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
+          <Link to={`/move-history?productId=${product.id}`} style={{ fontSize: '12px', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
             View full ledger &rarr;
           </Link>
         </div>
 
         {ledgerHistory.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-sm">
+          <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
             No stock movements recorded for this product yet.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
+          <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+            <table className="custom-table">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="px-6 py-3">Timestamp</th>
-                  <th className="px-6 py-3">Operation</th>
-                  <th className="px-6 py-3">Location</th>
-                  <th className="px-6 py-3 text-right">Movement</th>
-                  <th className="px-6 py-3">Reference</th>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Operation</th>
+                  <th>Location</th>
+                  <th style={{ textAlign: 'right' }}>Movement</th>
+                  <th>Reference</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody>
                 {ledgerHistory.map((entry) => {
                   const isPositive = entry.quantity > 0;
                   return (
-                    <tr key={entry.id} className="hover:bg-slate-800/40 transition text-xs">
-                      <td className="px-6 py-3 text-slate-400 font-mono">
+                    <tr key={entry.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-muted)' }}>
                         {new Date(entry.createdAt).toLocaleString()}
                       </td>
-                      <td className="px-6 py-3">
-                        <StatusBadge status={entry.operationType} />
+                      <td>
+                        <StatusBadge status={entry.operationType} size="sm" />
                       </td>
-                      <td className="px-6 py-3 text-slate-300">
+                      <td>
                         {entry.location ? `${entry.location.warehouse.name} - ${entry.location.name}` : '-'}
                       </td>
-                      <td className={`px-6 py-3 text-right font-mono font-bold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <td
+                        style={{
+                          textAlign: 'right',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 700,
+                          color: isPositive ? 'var(--color-primary)' : 'var(--status-canceled-text)',
+                        }}
+                      >
                         {isPositive ? `+${entry.quantity}` : entry.quantity} {product.uom.symbol}
                       </td>
-                      <td className="px-6 py-3 text-slate-400 font-mono">
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-muted)' }}>
                         {entry.referenceNumber || entry.referenceId || '-'}
                       </td>
                     </tr>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, ShieldCheck, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { dashboardApi, NotificationItem } from '../services/dashboardApi';
 
@@ -51,8 +51,7 @@ export const Topbar: React.FC = () => {
     <header
       style={{
         height: '64px',
-        backgroundColor: 'rgba(15, 23, 42, 0.7)',
-        backdropFilter: 'blur(12px)',
+        backgroundColor: '#FFFFFF',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
@@ -61,6 +60,7 @@ export const Topbar: React.FC = () => {
         position: 'sticky',
         top: 0,
         zIndex: 30,
+        boxShadow: '0 1px 4px rgba(43, 51, 26, 0.04)',
       }}
     >
       {/* Left side: System status badge */}
@@ -69,23 +69,23 @@ export const Topbar: React.FC = () => {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '8px',
             fontSize: '12px',
-            fontWeight: 600,
-            padding: '4px 10px',
+            fontWeight: 700,
+            padding: '5px 12px',
             borderRadius: 'var(--radius-full)',
-            background: 'rgba(16, 185, 129, 0.1)',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
-            color: 'var(--emerald-400)',
+            background: 'var(--status-done-bg)',
+            border: '1px solid var(--status-done-border)',
+            color: 'var(--status-done-text)',
           }}
         >
           <span
             style={{
-              width: '7px',
-              height: '7px',
+              width: '8px',
+              height: '8px',
               borderRadius: '50%',
-              backgroundColor: 'var(--emerald-400)',
-              boxShadow: '0 0 8px var(--emerald-400)',
+              backgroundColor: '#4F5B2A',
+              boxShadow: '0 0 6px rgba(79, 91, 42, 0.5)',
             }}
           />
           Live Production Engine
@@ -99,16 +99,17 @@ export const Topbar: React.FC = () => {
           <button
             onClick={() => setShowDropdown(!showDropdown)}
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--border-subtle)',
+              background: '#F5EFE3',
+              border: '1px solid var(--border-medium)',
               borderRadius: 'var(--radius-md)',
               padding: '8px',
-              color: 'var(--text-secondary)',
+              color: 'var(--color-primary)',
               cursor: 'pointer',
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.15s ease',
             }}
           >
             <Bell size={18} />
@@ -118,8 +119,8 @@ export const Topbar: React.FC = () => {
                   position: 'absolute',
                   top: '-4px',
                   right: '-4px',
-                  background: 'var(--rose-500)',
-                  color: '#fff',
+                  background: '#B8892D',
+                  color: '#FFFFFF',
                   fontSize: '10px',
                   fontWeight: 700,
                   width: '18px',
@@ -128,6 +129,7 @@ export const Topbar: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  boxShadow: '0 2px 4px rgba(184, 137, 45, 0.4)',
                 }}
               >
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -137,7 +139,7 @@ export const Topbar: React.FC = () => {
 
           {showDropdown && (
             <div
-              className="glass-card animate-fade-in"
+              className="card animate-fade-in"
               style={{
                 position: 'absolute',
                 top: '46px',
@@ -149,6 +151,7 @@ export const Topbar: React.FC = () => {
                 zIndex: 100,
                 boxShadow: 'var(--shadow-lg)',
                 border: '1px solid var(--border-medium)',
+                background: '#FFFFFF',
               }}
             >
               <div
@@ -161,7 +164,7 @@ export const Topbar: React.FC = () => {
                   borderBottom: '1px solid var(--border-subtle)',
                 }}
               >
-                <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>
+                <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)' }}>
                   Notifications ({unreadCount} unread)
                 </span>
                 {unreadCount > 0 && (
@@ -170,9 +173,9 @@ export const Topbar: React.FC = () => {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: 'var(--primary-400)',
+                      color: 'var(--color-accent)',
                       fontSize: '12px',
-                      fontWeight: 500,
+                      fontWeight: 600,
                       cursor: 'pointer',
                     }}
                   >
@@ -194,18 +197,18 @@ export const Topbar: React.FC = () => {
                       style={{
                         padding: '10px 12px',
                         borderRadius: 'var(--radius-sm)',
-                        background: n.readAt ? 'rgba(255, 255, 255, 0.02)' : 'rgba(59, 130, 246, 0.08)',
+                        background: n.readAt ? '#FAF8F5' : 'var(--color-accent-soft)',
                         border: '1px solid',
-                        borderColor: n.readAt ? 'transparent' : 'rgba(59, 130, 246, 0.2)',
+                        borderColor: n.readAt ? 'var(--border-subtle)' : 'var(--border-accent)',
                         cursor: 'pointer',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {n.title}
                         </span>
                         {!n.readAt && (
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary-400)' }} />
+                          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#B8892D' }} />
                         )}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -225,10 +228,10 @@ export const Topbar: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            padding: '6px 12px',
+            padding: '5px 12px',
             borderRadius: 'var(--radius-full)',
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid var(--border-subtle)',
+            background: '#F5EFE3',
+            border: '1px solid var(--border-medium)',
           }}
         >
           <div
@@ -236,18 +239,18 @@ export const Topbar: React.FC = () => {
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--primary-500), #8b5cf6)',
+              background: '#4F5B2A',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
               fontSize: '12px',
-              color: '#fff',
+              color: '#FFFFFF',
             }}
           >
             {user?.name?.charAt(0) || 'U'}
           </div>
-          <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
             {user?.name || 'Authorized User'}
           </span>
         </div>

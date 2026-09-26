@@ -25,7 +25,7 @@ export const AppLayout: React.FC = () => {
       <Sidebar />
       <div className="main-content">
         <Topbar />
-        <main className="page-container animate-fade-in">
+        <main className="page-container">
           <Outlet />
         </main>
       </div>

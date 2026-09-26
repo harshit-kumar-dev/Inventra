@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { dashboardApi, DashboardSummary } from '../../services/dashboardApi';
 import { stockApi, StockLedgerEntry } from '../../services/stockApi';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -12,16 +13,15 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
-  Scale,
   Plus,
   RefreshCw,
-  ChevronRight,
-  Clock,
   TrendingUp,
   ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
@@ -49,9 +49,8 @@ export const DashboardPage: React.FC = () => {
       if (lowRes.data?.products) {
         setLowStockItems(lowRes.data.products);
       }
-      if (ledgerRes.data?.entries) {
-        setRecentMoves(ledgerRes.data.entries);
-      }
+      const list = (ledgerRes.data as any)?.ledger || ledgerRes.data?.entries || [];
+      setRecentMoves(list);
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard KPIs');
     } finally {
@@ -63,129 +62,280 @@ export const DashboardPage: React.FC = () => {
   if (error || !summary) return <ErrorState message={error || 'Failed to fetch dashboard data'} onRetry={loadDashboardData} />;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Top Welcome & Quick Actions Banner */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
+      <div
+        className="card"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '16px',
+          padding: '24px 28px',
+          background: '#FFFFFF',
+          border: '1px solid var(--border-medium)',
+        }}
+      >
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <h1 className="text-2xl font-bold text-white tracking-tight">StockSense Control Hub</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-primary)',
+                boxShadow: '0 0 8px rgba(79, 91, 42, 0.4)',
+              }}
+            />
+            <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+              StockSense Control Hub
+            </h1>
+            {user?.role && (
+              <span
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  padding: '3px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  background: 'var(--color-surface-tint)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--border-medium)',
+                }}
+              >
+                {user.role === 'ADMIN'
+                  ? 'System Admin'
+                  : user.role === 'INVENTORY_MANAGER'
+                  ? 'Inventory Manager'
+                  : 'Warehouse Staff'}
+              </span>
+            )}
           </div>
-          <p className="text-sm text-slate-400 mt-1">
-            Real-time multi-warehouse inventory health, movement velocity, and fulfillment pipelines
+          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            {user?.role === 'WAREHOUSE_STAFF'
+              ? 'Operational floor metrics, draft movement staging, and stock levels across active facilities.'
+              : 'Real-time multi-warehouse inventory health, movement velocity, and fulfillment pipelines.'}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={loadDashboardData}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition"
+            className="btn btn-secondary"
+            style={{ padding: '8px 12px' }}
             title="Refresh KPIs"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw size={15} />
           </button>
 
-          <Link
-            to="/receipts/new"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-emerald-600/20 transition"
-          >
-            <Plus className="w-3.5 h-3.5" /> Receipt
-          </Link>
+          {user?.role === 'WAREHOUSE_STAFF' ? (
+            <>
+              <Link
+                to="/transfers/new"
+                className="btn btn-primary"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <Plus size={15} /> New Transfer (Shelving)
+              </Link>
 
-          <Link
-            to="/deliveries/new"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20 transition"
-          >
-            <Plus className="w-3.5 h-3.5" /> Delivery
-          </Link>
+              <Link
+                to="/deliveries"
+                className="btn btn-accent"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <ArrowUpRight size={15} /> Order Picking
+              </Link>
 
-          <Link
-            to="/transfers/new"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-cyan-600/20 transition"
-          >
-            <Plus className="w-3.5 h-3.5" /> Transfer
-          </Link>
+              <Link
+                to="/adjustments/new"
+                className="btn btn-secondary"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <Plus size={15} /> Cycle Count
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/receipts/new"
+                className="btn btn-primary"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <Plus size={15} /> Incoming Receipt
+              </Link>
 
-          <Link
-            to="/adjustments/new"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-amber-600/20 transition"
-          >
-            <Plus className="w-3.5 h-3.5" /> Adjustment
-          </Link>
+              <Link
+                to="/deliveries/new"
+                className="btn btn-accent"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <Plus size={15} /> Outgoing Delivery
+              </Link>
+
+              <Link
+                to="/transfers/new"
+                className="btn btn-secondary"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <Plus size={15} /> Transfer
+              </Link>
+
+              <Link
+                to="/adjustments/new"
+                className="btn btn-secondary"
+                style={{ fontSize: '13px', padding: '8px 14px' }}
+              >
+                <Plus size={15} /> Adjustment
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
       {/* 6 Real KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '16px',
+        }}
+      >
         {/* Total Products in Stock */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-slate-700 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">In-Stock SKUs</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <Boxes className="w-4 h-4" />
+        <div className="card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              In-Stock SKUs
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                background: 'var(--color-primary-soft)',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Boxes size={18} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-white font-mono">{summary.inventory.totalProductsInStock}</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">of {summary.inventory.totalActiveProducts} active products</div>
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
+              {summary.inventory.totalProductsInStock}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              of {summary.inventory.totalActiveProducts} active products
+            </div>
           </div>
         </div>
 
         {/* Low Stock Items */}
         <Link
           to="/products"
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-amber-500/40 transition group"
+          className="card"
+          style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textDecoration: 'none' }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Low Stock</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#9E7422', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Low Stock
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                background: 'var(--color-accent-soft)',
+                color: 'var(--color-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <AlertTriangle size={18} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-amber-400 font-mono group-hover:scale-105 transition transform origin-left">
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>
               {summary.inventory.lowStockCount}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Below threshold limit</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Below threshold limit
+            </div>
           </div>
         </Link>
 
         {/* Out of Stock Items */}
         <Link
           to="/products"
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-rose-500/40 transition group"
+          className="card"
+          style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textDecoration: 'none' }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-rose-400 uppercase tracking-wider">Out of Stock</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
-              <XCircle className="w-4 h-4" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--status-canceled-text)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Out of Stock
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                background: 'var(--status-canceled-bg)',
+                color: 'var(--status-canceled-text)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <XCircle size={18} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-rose-400 font-mono group-hover:scale-105 transition transform origin-left">
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--status-canceled-text)', fontFamily: 'var(--font-mono)' }}>
               {summary.inventory.outOfStockCount}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Zero inventory balance</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Zero inventory balance
+            </div>
           </div>
         </Link>
 
         {/* Pending Receipts */}
         <Link
           to="/receipts"
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-emerald-500/40 transition group"
+          className="card"
+          style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textDecoration: 'none' }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Pending Receipts</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <ArrowDownLeft className="w-4 h-4" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Pending Receipts
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                background: 'var(--color-primary-soft)',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ArrowDownLeft size={18} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-emerald-400 font-mono group-hover:scale-105 transition transform origin-left">
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
               {summary.receipts.pending}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
-              {summary.receipts.late > 0 ? <span className="text-rose-400 font-semibold">{summary.receipts.late} delayed</span> : 'On schedule'}
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              {summary.receipts.late > 0 ? (
+                <span style={{ color: 'var(--status-canceled-text)', fontWeight: 600 }}>{summary.receipts.late} delayed</span>
+              ) : (
+                'On schedule'
+              )}
             </div>
           </div>
         </Link>
@@ -193,19 +343,33 @@ export const DashboardPage: React.FC = () => {
         {/* Pending Deliveries */}
         <Link
           to="/deliveries"
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-indigo-500/40 transition group"
+          className="card"
+          style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textDecoration: 'none' }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Pending Deliveries</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <ArrowUpRight className="w-4 h-4" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#9E7422', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Pending Deliveries
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                background: 'var(--color-accent-soft)',
+                color: 'var(--color-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ArrowUpRight size={18} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-indigo-400 font-mono group-hover:scale-105 transition transform origin-left">
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#9E7422', fontFamily: 'var(--font-mono)' }}>
               {summary.deliveries.pending}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
               {summary.deliveries.waiting > 0 ? `${summary.deliveries.waiting} waiting stock` : 'Ready to dispatch'}
             </div>
           </div>
@@ -214,66 +378,103 @@ export const DashboardPage: React.FC = () => {
         {/* Transfers Scheduled */}
         <Link
           to="/transfers"
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col justify-between hover:border-cyan-500/40 transition group"
+          className="card"
+          style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textDecoration: 'none' }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Transfers Active</span>
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-              <ArrowLeftRight className="w-4 h-4" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Transfers Active
+            </span>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                background: '#EDE3CF',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ArrowLeftRight size={18} />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-cyan-400 font-mono group-hover:scale-105 transition transform origin-left">
+          <div style={{ marginTop: '12px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'var(--font-mono)' }}>
               {summary.transfers.scheduled}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Internal bin movements</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Internal bin movements
+            </div>
           </div>
         </Link>
       </div>
 
       {/* Main Grid: Low Stock Alert Section + Recent Movements Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
         {/* Low Stock Alert Panel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+        <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-                <h2 className="text-base font-bold text-white">Critical Low Stock Warnings</h2>
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#FAF8F5',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={18} color="#B8892D" />
+                <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Critical Low Stock Warnings
+                </h2>
               </div>
-              <Link to="/products" className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
+              <Link to="/products" style={{ fontSize: '12px', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
                 View catalog &rarr;
               </Link>
             </div>
 
             {lowStockItems.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-sm flex flex-col items-center">
-                <ShieldCheck className="w-10 h-10 text-emerald-400 mb-2" />
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <ShieldCheck size={36} color="var(--color-primary)" style={{ marginBottom: '8px' }} />
                 <span>All inventory items are currently above their reorder safety thresholds.</span>
               </div>
             ) : (
-              <div className="divide-y divide-slate-800">
+              <div>
                 {lowStockItems.map((item) => (
                   <div
                     key={item.id}
                     onClick={() => navigate(`/products/${item.id}`)}
-                    className="p-4 hover:bg-slate-800/40 transition cursor-pointer flex items-center justify-between group"
+                    style={{
+                      padding: '14px 20px',
+                      borderBottom: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-surface-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <div>
-                      <div className="font-semibold text-white text-sm group-hover:text-indigo-400 transition">
+                      <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)' }}>
                         {item.name}
                       </div>
-                      <div className="text-xs text-slate-400 font-mono mt-0.5">
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
                         SKU: {item.sku} &bull; Category: {item.category?.name}
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <div className="text-sm font-bold font-mono text-rose-400">
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--status-canceled-text)' }}>
                         {item.totalStock} {item.uom?.symbol}
                       </div>
-                      <div className="text-[11px] text-slate-500">
-                        Min threshold: {item.reorderLevel} {item.uom?.symbol}
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        Min: {item.reorderLevel} {item.uom?.symbol}
                       </div>
                     </div>
                   </div>
@@ -282,47 +483,79 @@ export const DashboardPage: React.FC = () => {
             )}
           </div>
 
-          <div className="p-3 bg-slate-950/40 border-t border-slate-800 text-center">
-            <Link to="/receipts/new" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+          <div style={{ padding: '12px 20px', background: '#FAF8F5', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+            <Link to="/receipts/new" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>
               + Generate Purchase Receipt for Depleted Items
             </Link>
           </div>
         </div>
 
         {/* Recent Ledger Audit Trail */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+        <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-base font-bold text-white">Live Stock Velocity & Moves</h2>
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#FAF8F5',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUp size={18} color="var(--color-primary)" />
+                <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Live Stock Velocity & Moves
+                </h2>
               </div>
-              <Link to="/move-history" className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
+              <Link to="/move-history" style={{ fontSize: '12px', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
                 Full ledger &rarr;
               </Link>
             </div>
 
             {recentMoves.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-sm">
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                 No recent stock movements recorded yet.
               </div>
             ) : (
-              <div className="divide-y divide-slate-800">
+              <div>
                 {recentMoves.map((move) => {
                   const isPositive = move.quantity > 0;
                   return (
-                    <div key={move.id} className="p-3.5 hover:bg-slate-800/40 transition flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-3">
-                        <StatusBadge status={move.operationType} />
+                    <div
+                      key={move.id}
+                      style={{
+                        padding: '14px 20px',
+                        borderBottom: '1px solid var(--border-subtle)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '12.5px',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-surface-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <StatusBadge status={move.operationType} size="sm" />
                         <div>
-                          <div className="font-medium text-white">{move.product?.name}</div>
-                          <div className="text-slate-500 text-[11px]">
-                            {move.location ? `${move.location.warehouse.code} / ${move.location.name}` : '-'} &bull; {new Date(move.createdAt).toLocaleTimeString()}
+                          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{move.product?.name}</div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '2px' }}>
+                            {move.location ? `${move.location.warehouse.code} / ${move.location.name}` : '-'} &bull;{' '}
+                            {new Date(move.createdAt).toLocaleTimeString()}
                           </div>
                         </div>
                       </div>
 
-                      <div className={`font-mono font-bold text-sm ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 700,
+                          fontSize: '14px',
+                          color: isPositive ? 'var(--color-primary)' : 'var(--status-canceled-text)',
+                        }}
+                      >
                         {isPositive ? `+${move.quantity}` : move.quantity}
                       </div>
                     </div>
@@ -332,8 +565,8 @@ export const DashboardPage: React.FC = () => {
             )}
           </div>
 
-          <div className="p-3 bg-slate-950/40 border-t border-slate-800 text-center">
-            <Link to="/move-history" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+          <div style={{ padding: '12px 20px', background: '#FAF8F5', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+            <Link to="/move-history" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>
               View Complete Ledger Audit Logs
             </Link>
           </div>

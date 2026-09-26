@@ -12,6 +12,7 @@ import transferRoutes from './transfer.routes';
 import adjustmentRoutes from './adjustment.routes';
 import dashboardRoutes from './dashboard.routes';
 import notificationRoutes from './notification.routes';
+import userRoutes from './user.routes';
 import { prisma } from '@stocksense/database';
 
 const router = Router();
@@ -48,5 +49,6 @@ router.use('/transfers', transferRoutes);
 router.use('/adjustments', adjustmentRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/users', userRoutes);
 
 export default router;

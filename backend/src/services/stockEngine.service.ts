@@ -389,6 +389,52 @@ export class StockEngineService {
       }),
     ]);
 
+    const productIds = Array.from(new Set(stockItems.map((s) => s.productId)));
+    const locationIds = Array.from(new Set(stockItems.map((s) => s.locationId)));
+
+    // Fetch active outgoing delivery reservations (WAITING or READY)
+    const activeDeliveryLines = await prisma.deliveryLine.findMany({
+      where: {
+        productId: { in: productIds },
+        locationId: { in: locationIds },
+        delivery: {
+          status: { in: ['WAITING', 'READY'] as any },
+        },
+      },
+      select: {
+        productId: true,
+        locationId: true,
+        quantity: true,
+      },
+    });
+
+    // Fetch active outgoing internal transfer reservations (WAITING or READY)
+    const activeTransferLines = await prisma.transferLine.findMany({
+      where: {
+        productId: { in: productIds },
+        sourceLocationId: { in: locationIds },
+        transfer: {
+          status: { in: ['WAITING', 'READY'] as any },
+        },
+      },
+      select: {
+        productId: true,
+        sourceLocationId: true,
+        quantity: true,
+      },
+    });
+
+    // Calculate reservation map per product-location
+    const reservedMap = new Map<string, number>();
+    for (const dl of activeDeliveryLines) {
+      const key = `${dl.productId}_${dl.locationId}`;
+      reservedMap.set(key, (reservedMap.get(key) || 0) + (dl.quantity || 0));
+    }
+    for (const tl of activeTransferLines) {
+      const key = `${tl.productId}_${tl.sourceLocationId}`;
+      reservedMap.set(key, (reservedMap.get(key) || 0) + (tl.quantity || 0));
+    }
+
     const formatted = stockItems.map((item) => {
       let stockStatus: 'NORMAL' | 'LOW_STOCK' | 'OUT_OF_STOCK' = 'NORMAL';
       if (item.quantity <= 0) {
@@ -396,6 +442,9 @@ export class StockEngineService {
       } else if (item.quantity <= item.product.reorderLevel) {
         stockStatus = 'LOW_STOCK';
       }
+
+      const reserved = reservedMap.get(`${item.productId}_${item.locationId}`) || 0;
+      const freeToUse = Math.max(0, item.quantity - reserved);
 
       return {
         id: item.id,
@@ -413,6 +462,9 @@ export class StockEngineService {
         warehouseName: item.location.warehouse.name,
         warehouseCode: item.location.warehouse.code,
         quantity: item.quantity,
+        onHand: item.quantity,
+        reserved,
+        freeToUse,
         stockStatus,
         updatedAt: item.updatedAt,
       };

@@ -5,21 +5,35 @@ export interface StockItem {
   productId: string;
   locationId: string;
   quantity: number;
+  onHand?: number;
+  reserved?: number;
+  freeToUse?: number;
   productName: string;
   sku: string;
+  category?: string;
   uom: string;
+  perUnitCost?: number;
+  reorderLevel?: number;
   locationName: string;
   locationCode: string;
   warehouseId: string;
   warehouseName: string;
   warehouseCode: string;
+  stockStatus?: 'NORMAL' | 'LOW_STOCK' | 'OUT_OF_STOCK';
   updatedAt: string;
 }
 
 export interface StockLedgerEntry {
   id: string;
   productId: string;
+  productName?: string;
+  sku?: string;
+  uom?: string;
+  warehouseName?: string;
+  warehouseCode?: string;
   locationId: string;
+  locationName?: string;
+  locationCode?: string;
   operationType:
     | 'RECEIPT'
     | 'DELIVERY'
@@ -29,9 +43,11 @@ export interface StockLedgerEntry {
     | 'ADJUSTMENT_LOSS'
     | 'INITIAL_SEED';
   quantity: number;
+  balanceAfter?: number;
   referenceType?: string;
   referenceId?: string;
   referenceNumber?: string;
+  createdBy?: string;
   userId?: string;
   notes?: string;
   createdAt: string;
@@ -39,7 +55,7 @@ export interface StockLedgerEntry {
     id: string;
     name: string;
     sku: string;
-    uom?: { name: string; symbol: string };
+    uom?: { name?: string; symbol: string };
   };
   location?: {
     id: string;
@@ -50,7 +66,7 @@ export interface StockLedgerEntry {
   user?: {
     id: string;
     name: string;
-    email: string;
+    email?: string;
   };
 }
 
@@ -81,8 +97,9 @@ export const stockApi = {
     limit?: number;
   }) => {
     return api.get<{
-      entries: StockLedgerEntry[];
-      pagination: {
+      ledger: StockLedgerEntry[];
+      entries?: StockLedgerEntry[];
+      pagination?: {
         page: number;
         limit: number;
         total: number;

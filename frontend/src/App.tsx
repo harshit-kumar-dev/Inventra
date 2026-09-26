@@ -18,9 +18,16 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { ProductListPage } from './pages/products/ProductListPage';
 import { ProductDetailPage } from './pages/products/ProductDetailPage';
+import { StockPage } from './pages/stock/StockPage';
 import { CategoryListPage } from './pages/categories/CategoryListPage';
-import { WarehouseListPage } from './pages/warehouse/WarehouseListPage';
 import { SupplierListPage } from './pages/suppliers/SupplierListPage';
+
+// Settings & Master Data Pages
+import { SettingsPage } from './pages/settings/SettingsPage';
+import { WarehouseListPage } from './pages/settings/WarehouseListPage';
+import { LocationListPage } from './pages/settings/LocationListPage';
+
+// Operations Pages
 import { ReceiptListPage } from './pages/operations/ReceiptListPage';
 import { ReceiptDetailPage } from './pages/operations/ReceiptDetailPage';
 import { DeliveryListPage } from './pages/operations/DeliveryListPage';
@@ -30,14 +37,17 @@ import { TransferDetailPage } from './pages/operations/TransferDetailPage';
 import { AdjustmentListPage } from './pages/operations/AdjustmentListPage';
 import { AdjustmentDetailPage } from './pages/operations/AdjustmentDetailPage';
 import { MoveHistoryPage } from './pages/operations/MoveHistoryPage';
+
+// Administration & User Pages
+import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { LoadingState } from './components/LoadingState';
 
-// Protected Route Guard
+// Standard Protected Route Guard (Authenticated Users)
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <LoadingState text="Authenticating user session..." />
@@ -52,11 +62,60 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+// Manager or Admin Role Guard (Settings, Warehouse, Locations, Master Config)
+// Warehouse Staff users attempting direct URL access are strictly redirected to /dashboard
+const ManagerOrAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <LoadingState text="Verifying role permissions..." />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const isAuthorized = user?.role === 'ADMIN' || user?.role === 'INVENTORY_MANAGER';
+
+  if (!isAuthorized) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Strict Admin Only Role Guard (User Management, System Auth Logs)
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <LoadingState text="Verifying system administrator privileges..." />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'ADMIN') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 // Public Route Guard (Redirect if already logged in)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <LoadingState text="Loading StockSense..." />
@@ -102,11 +161,60 @@ export const App: React.FC = () => {
             >
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/stock" element={<StockPage />} />
               <Route path="/products" element={<ProductListPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
-              <Route path="/categories" element={<CategoryListPage />} />
-              <Route path="/warehouse" element={<WarehouseListPage />} />
-              <Route path="/suppliers" element={<SupplierListPage />} />
+
+              {/* Master Settings & Topology Routes (RBAC Protected: ADMIN & INVENTORY_MANAGER ONLY) */}
+              <Route
+                path="/settings"
+                element={
+                  <ManagerOrAdminRoute>
+                    <SettingsPage />
+                  </ManagerOrAdminRoute>
+                }
+              />
+              <Route
+                path="/settings/warehouse"
+                element={
+                  <ManagerOrAdminRoute>
+                    <WarehouseListPage />
+                  </ManagerOrAdminRoute>
+                }
+              />
+              <Route
+                path="/settings/locations"
+                element={
+                  <ManagerOrAdminRoute>
+                    <LocationListPage />
+                  </ManagerOrAdminRoute>
+                }
+              />
+              {/* Legacy / Direct Route Redirect to Settings Warehouse */}
+              <Route
+                path="/warehouse"
+                element={
+                  <ManagerOrAdminRoute>
+                    <WarehouseListPage />
+                  </ManagerOrAdminRoute>
+                }
+              />
+              <Route
+                path="/categories"
+                element={
+                  <ManagerOrAdminRoute>
+                    <CategoryListPage />
+                  </ManagerOrAdminRoute>
+                }
+              />
+              <Route
+                path="/suppliers"
+                element={
+                  <ManagerOrAdminRoute>
+                    <SupplierListPage />
+                  </ManagerOrAdminRoute>
+                }
+              />
 
               {/* Operations */}
               <Route path="/receipts" element={<ReceiptListPage />} />
@@ -119,8 +227,16 @@ export const App: React.FC = () => {
               <Route path="/adjustments/:id" element={<AdjustmentDetailPage />} />
               <Route path="/move-history" element={<MoveHistoryPage />} />
 
-              {/* User Profile */}
+              {/* User Profile & Administration */}
               <Route path="/profile" element={<ProfilePage />} />
+              <Route
+                path="/users"
+                element={
+                  <AdminRoute>
+                    <UserManagementPage />
+                  </AdminRoute>
+                }
+              />
             </Route>
 
             {/* Fallback */}

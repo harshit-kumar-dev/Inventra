@@ -1,4 +1,21 @@
-# StockSense — Smart Inventory & Warehouse Management System
+<p align="center">
+  <img src="./docs/assets/logo.jpg" alt="StockSense Logo" width="160" style="border-radius: 24px; box-shadow: 0 8px 24px rgba(79, 91, 42, 0.25);" />
+</p>
+
+<h1 align="center">StockSense — Smart Warehouse & Inventory Management System</h1>
+
+<p align="center">
+  <em>Enterprise multi-warehouse orchestration, immutable audit ledger, location-aware inventory, and real-time operations control hub.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Brand%20Primary-%234F5B2A-4F5B2A?style=flat-square" alt="Primary Olive" />
+  <img src="https://img.shields.io/badge/Accent-%23B8892D-B8892D?style=flat-square" alt="Accent Mustard" />
+  <img src="https://img.shields.io/badge/Background-%23F5EFE3-F5EFE3?style=flat-square" alt="Background Cream" />
+  <img src="https://img.shields.io/badge/Surface-%23D8C9A8-D8C9A8?style=flat-square" alt="Surface Beige" />
+</p>
+
+---
 
 ## 🌟 Executive Summary
 
